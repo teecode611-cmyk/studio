@@ -3,7 +3,7 @@ import { Toaster } from '@/components/ui/toaster';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'SocraticAI',
+  title: 'Koya AI Tutor',
   description: 'An AI tutor for guided learning.',
 };
 
