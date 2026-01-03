@@ -11,7 +11,7 @@ import {
 } from '@/app/actions';
 
 import { Header } from './header';
-import { ProblemForm } from './problem-form';
+import { ProblemForm, type ProblemSubmitData } from './problem-form';
 import { ChatPanel } from './chat-panel';
 import { SidebarPanel } from './sidebar-panel';
 import { RecapDialog } from './recap-dialog';
@@ -47,13 +47,13 @@ export function TutorView() {
     });
   };
 
-  const handleStartSession = async (newProblem: string) => {
+  const handleStartSession = async (data: ProblemSubmitData) => {
     setIsLoading(true);
     try {
-      const response = await startSocraticSession(newProblem);
-      setProblem(newProblem);
+      const response = await startSocraticSession(data);
+      setProblem(data.problem);
       setMessages([
-        { role: 'user', content: newProblem },
+        { role: 'user', content: data.problem },
         { role: 'assistant', content: response.question },
       ]);
       setStepByStepProgress(response.updatedStepByStepProgress);

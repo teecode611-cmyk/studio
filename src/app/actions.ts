@@ -17,24 +17,25 @@ export type Message = {
 
 const startSessionSchema = z.object({
   problem: z.string().min(10, 'Problem statement is too short.'),
+  imageDataUri: z.string().optional(),
 });
 
 export async function startSocraticSession(
-  problem: string
+  input: z.infer<typeof startSessionSchema>
 ): Promise<SocraticQuestioningOutput> {
-  const validatedInput = startSessionSchema.safeParse({ problem });
+  const validatedInput = startSessionSchema.safeParse(input);
   if (!validatedInput.success) {
     throw new Error(validatedInput.error.errors[0].message);
   }
 
-  const input: SocraticQuestioningInput = {
-    problem,
+  const socraticInput: SocraticQuestioningInput = {
+    ...validatedInput.data,
     studentResponse:
       "I have a new problem I'd like to work on. Please guide me.",
   };
 
   try {
-    const response = await socraticQuestioning(input);
+    const response = await socraticQuestioning(socraticInput);
     return response;
   } catch (error) {
     console.error('Error in startSocraticSession:', error);
