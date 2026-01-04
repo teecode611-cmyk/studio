@@ -15,10 +15,13 @@ import { Loader2, UploadCloud } from 'lucide-react';
 import Image from 'next/image';
 
 const formSchema = z.object({
-  problem: z.string().min(20, {
-    message: 'Please describe your problem in at least 20 characters.',
+  problem: z.string().min(1, {
+    message: 'Please describe your problem or upload an image.',
   }),
   image: z.any().optional(),
+}).refine(data => data.problem || data.image, {
+  message: "Please either describe the problem or upload an image.",
+  path: ["problem"],
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -61,6 +64,7 @@ export function ProblemForm({ onSubmit, isLoading }: ProblemFormProps) {
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      form.clearErrors("problem"); // Clear error when image is selected
       const reader = new FileReader();
       reader.onloadend = () => {
         setImagePreview(reader.result as string);
