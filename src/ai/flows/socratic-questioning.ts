@@ -88,7 +88,9 @@ const socraticQuestioningPrompt = ai.definePrompt({
   The user has uploaded an image of their problem. Analyze the image to understand the question.
   Image: {{media url=imageDataUri}}
   {{/if}}
+  {{#if problem}}
   Problem: {{{problem}}}
+  {{/if}}
   Student's Current Response: {{{studentResponse}}}
   {{#if stepByStepProgress}}
   Current Progress So Far: {{{stepByStepProgress}}}

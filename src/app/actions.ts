@@ -16,8 +16,11 @@ export type Message = {
 };
 
 const startSessionSchema = z.object({
-  problem: z.string().min(10, 'Problem statement is too short.'),
+  problem: z.string(),
   imageDataUri: z.string().optional(),
+}).refine(data => data.problem || data.imageDataUri, {
+  message: 'Please either provide a problem description or an image.',
+  path: ['problem'],
 });
 
 export async function startSocraticSession(
@@ -29,7 +32,8 @@ export async function startSocraticSession(
   }
 
   const socraticInput: SocraticQuestioningInput = {
-    ...validatedInput.data,
+    problem: validatedInput.data.problem,
+    imageDataUri: validatedInput.data.imageDataUri,
     studentResponse:
       "I have a new problem I'd like to work on. Please guide me.",
   };
