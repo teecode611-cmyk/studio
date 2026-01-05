@@ -23,6 +23,8 @@ export type StartSessionInput = z.infer<typeof StartSessionInputSchema>;
 
 const StartSessionOutputSchema = z.object({
   question: z.string().describe('The initial probing question to guide the student towards understanding.'),
+  hint: z.string().optional().describe('A hint to assist the student, if they are stuck.'),
+  encouragement: z.string().optional().describe('Encouragement to the student.'),
   updatedStepByStepProgress: z.string().optional().describe('The initial step-by-step progress, if any.'),
 });
 

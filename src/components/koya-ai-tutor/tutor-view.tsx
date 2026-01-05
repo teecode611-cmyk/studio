@@ -8,6 +8,7 @@ import {
   getHintAction,
   getSummaryAction,
 } from '@/app/actions';
+import type { StartSessionOutput } from '@/ai/flows/start-session';
 import { useAuth, useUser } from '@/firebase';
 import { initiateEmailSignIn, initiateEmailSignUp } from '@/firebase/non-blocking-login';
 import { errorEmitter } from '@/firebase/error-emitter';
@@ -59,7 +60,7 @@ export function TutorView() {
     setIsLoading(true);
     setIsAuthLoading(false); // Ensure auth loading is stopped
     try {
-      const response = await startSocraticSession(data);
+      const response: StartSessionOutput = await startSocraticSession(data);
       setProblem(data.problem || 'the uploaded image');
       setMessages([
         { role: 'user', content: data.problem || 'I uploaded an image of my problem.' },
