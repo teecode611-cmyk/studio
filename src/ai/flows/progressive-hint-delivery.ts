@@ -37,13 +37,13 @@ const hintPrompt = ai.definePrompt({
   The student is working on the following question:
   {{question}}
 
-  {% if studentAnswer %}The student's answer is:
-  {{studentAnswer}}{% endif %}
+  {{#if studentAnswer}}The student's answer is:
+  {{studentAnswer}}{{/if}}
 
-  {% if previousHints.length > 0 %}Previous hints given:
+  {{#if previousHints.length > 0}}Previous hints given:
   {{#each previousHints}}- {{this}}\n
-  {% endeach %}
-  {% endif %}
+  {{/each}}
+  {{/if}}
 
   Provide a hint that is more specific than the previous hints, but does not give away the answer.
   The hint should guide the student towards understanding the concepts required to answer the question, using the Socratic method.
