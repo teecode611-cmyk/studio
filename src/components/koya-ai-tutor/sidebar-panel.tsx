@@ -24,7 +24,7 @@ export function SidebarPanel({
       <div className="space-y-3">
         <Button
           variant="outline"
-          className="w-full justify-start gap-2 border-accent/50 bg-accent/10 text-accent-foreground hover:bg-accent/20"
+          className="w-full justify-start gap-2"
           onClick={onGetHint}
           disabled={isHintLoading || isRecapLoading}
         >
