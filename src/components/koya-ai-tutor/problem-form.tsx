@@ -15,10 +15,8 @@ import { Loader2, UploadCloud } from 'lucide-react';
 import Image from 'next/image';
 
 const formSchema = z.object({
-  problem: z.string().min(1, {
-    message: 'Please describe your problem or upload an image.',
-  }),
-  image: z.any().optional(),
+  problem: z.string(),
+  image: z.instanceof(File).optional(),
 }).refine(data => data.problem || data.image, {
   message: "Please either describe the problem or upload an image.",
   path: ["problem"],
@@ -56,8 +54,8 @@ export function ProblemForm({ onSubmit, isLoading }: ProblemFormProps) {
 
   const handleFormSubmit: SubmitHandler<FormValues> = async (data) => {
     let imageDataUri: string | undefined = undefined;
-    if (data.image && data.image[0]) {
-      imageDataUri = await toBase64(data.image[0]);
+    if (data.image) {
+      imageDataUri = await toBase64(data.image);
     }
     onSubmit({ problem: data.problem, imageDataUri });
   };
@@ -65,6 +63,7 @@ export function ProblemForm({ onSubmit, isLoading }: ProblemFormProps) {
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      form.setValue('image', file);
       form.clearErrors("problem"); // Clear error when image is selected
       const reader = new FileReader();
       reader.onloadend = () => {
@@ -73,6 +72,7 @@ export function ProblemForm({ onSubmit, isLoading }: ProblemFormProps) {
       reader.readAsDataURL(file);
     } else {
       setImagePreview(null);
+      form.setValue('image', undefined);
     }
   };
 
@@ -116,7 +116,7 @@ export function ProblemForm({ onSubmit, isLoading }: ProblemFormProps) {
                   <FormField
                     control={form.control}
                     name="image"
-                    render={({ field }) => (
+                    render={() => (
                       <FormItem>
                         <FormLabel className="text-lg">Upload an Image</FormLabel>
                         <FormControl>
@@ -143,7 +143,6 @@ export function ProblemForm({ onSubmit, isLoading }: ProblemFormProps) {
                               type="file"
                               accept="image/*"
                               className="absolute inset-0 z-10 w-full h-full opacity-0 cursor-pointer"
-                              {...form.register('image')}
                               onChange={handleImageChange}
                             />
                           </div>

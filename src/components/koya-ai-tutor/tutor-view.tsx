@@ -69,6 +69,8 @@ export function TutorView() {
       setSessionState('active');
     } catch (error) {
       handleError(error, 'Could not start the session.');
+      // If starting fails, go back to idle so user can try again
+      setSessionState('idle');
     } finally {
       setIsLoading(false);
       setProblemData(null); // Clear pending problem data
@@ -88,17 +90,18 @@ export function TutorView() {
     };
   }, [handleError]);
   
+  // This effect runs once the user has successfully logged in.
   useEffect(() => {
-    // If we have a user and problem data, it means they just logged in
-    // to start a session.
-    if (user && problemData) {
-      handleStartSession(problemData);
-      setIsAuthOpen(false); // Close the modal
+    // If we have a user, and we have pending problem data, and we are not in an active session
+    if (user && problemData && sessionState === 'idle') {
+      setIsAuthOpen(false); // Close the auth modal
+      setIsAuthLoading(false); // Stop auth loading
+      handleStartSession(problemData); // Start the session with the stored data
     }
-  }, [user, problemData, handleStartSession]);
+  }, [user, problemData, handleStartSession, sessionState]);
 
 
-  const triggerAuthFlow = (data: ProblemSubmitData) => {
+  const triggerAuthOrStartSession = (data: ProblemSubmitData) => {
     if (!user) {
       setProblemData(data); // Store problem data to use after login
       setIsAuthOpen(true);
@@ -114,6 +117,7 @@ export function TutorView() {
     } else {
       initiateEmailSignIn(auth, data.email, data.password);
     }
+    // The useEffect hook will handle the rest once the user state changes
   };
 
   const handleSendMessage = async (response: string) => {
@@ -185,7 +189,7 @@ export function TutorView() {
       <Header />
       <main className="flex-1">
         {sessionState === 'idle' ? (
-          <ProblemForm onSubmit={triggerAuthFlow} isLoading={isLoading || isUserLoading || isAuthLoading} />
+          <ProblemForm onSubmit={triggerAuthOrStartSession} isLoading={isLoading || isUserLoading || isAuthLoading} />
         ) : (
           <div className="container mx-auto p-4 lg:p-6 h-[calc(100vh-4rem-1px)]">
             <div className="grid h-full lg:grid-cols-3 gap-6">
