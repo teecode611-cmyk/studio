@@ -4,8 +4,8 @@ import {
   signInAnonymously,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
-  FirebaseError,
 } from 'firebase/auth';
+import { FirebaseError } from 'firebase/app';
 import { errorEmitter } from './error-emitter';
 
 /** Initiate anonymous sign-in (non-blocking). */
