@@ -90,7 +90,9 @@ const socraticQuestioningPrompt = ai.definePrompt({
   {{/if}}
   Problem: {{{problem}}}
   Student's Current Response: {{{studentResponse}}}
+  {{#if stepByStepProgress}}
   Current Progress So Far: {{{stepByStepProgress}}}
+  {{/if}}
 
   Based on the student's problem and their response:
   1. Formulate a single, probing question to guide them closer to the solution.
