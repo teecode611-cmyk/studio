@@ -1,0 +1,144 @@
+/**
+ * Core Philosophy: This ruleset enforces a strict user-ownership model. All data is considered private and is
+ * nested within a user-specific document tree. Access is granted only to the authenticated user who owns that data tree.
+ *
+ * Data Structure: The data is organized hierarchically, starting with a top-level `users` collection. All related
+ * data for a user, such as their learning sessions and the messages within those sessions, are stored in subcollections
+ * under their specific user document (e.g., `/users/{userId}/sessions/{sessionId}`).
+ *
+ * Key Security Decisions:
+ * - User Isolation: A user can only read or write data located under their own user ID path (`/users/{request.auth.uid}`).
+ * - No Public Data: There are no publicly readable collections. All access requires authentication.
+ * - User Listing Disabled: The ability to query or list the top-level `/users` collection is explicitly disabled to
+ *   protect user privacy and prevent enumeration attacks.
+ * - Path-Based Security: Security is derived directly from the document path, which is a highly performant and secure
+ *   pattern that avoids costly `get()` or `exists()` calls to other documents for authorization.
+ *
+ * Denormalization for Authorization: The rules enforce that documents within subcollections contain IDs that link them
+ * to their parent documents and user. For instance, a `Session` document must contain a `userId` field that matches
+ * the `{userId}` in its path. This ensures relational integrity without needing extra database reads.
+ *
+ * Structural Segregation: The entire data model uses structural segregation by placing each user's data in its own
+ * document tree. This naturally scopes all queries (like listing sessions) to the current user, preventing data leakage.
+ */
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper Functions for Reusability and Clarity
+
+    /**
+     * Checks if a user is authenticated.
+     */
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    /**
+     * Validates that the currently authenticated user's UID matches the
+     * document's owner ID from the path. This is the core of the ownership model.
+     * @param userId The user ID from the document path.
+     */
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    /**
+     * Ensures an operation is performed by the document's owner and that the
+     * document already exists. Used for safe updates and deletes.
+     * @param userId The user ID from the document path.
+     */
+    function isExistingOwner(userId) {
+      return isOwner(userId) && resource != null;
+    }
+
+    /**
+     * On create, validates that the user document's internal `id` field
+     * matches the document ID from the path.
+     */
+    function hasValidUserDataOnCreate(userId) {
+      return request.resource.data.id == userId;
+    }
+
+    /**
+     * On update, ensures the user document's internal `id` is not changed.
+     */
+    function isUserDataImmutable() {
+      return request.resource.data.id == resource.data.id;
+    }
+
+    /**
+     * On create, validates that the session's internal IDs (`userId`, `id`)
+     * match the IDs from the document path.
+     */
+    function hasValidSessionDataOnCreate(userId, sessionId) {
+      return request.resource.data.userId == userId && request.resource.data.id == sessionId;
+    }
+
+    /**
+     * On update, ensures the session's relational IDs (`userId`, `id`) are not changed.
+     */
+    function isSessionDataImmutable() {
+      return request.resource.data.userId == resource.data.userId && request.resource.data.id == resource.data.id;
+    }
+
+    /**
+     * On create, validates that the message's internal IDs (`sessionId`, `id`)
+     * match the IDs from the document path.
+     */
+    function hasValidMessageDataOnCreate(sessionId, messageId) {
+      return request.resource.data.sessionId == sessionId && request.resource.data.id == messageId;
+    }
+
+    /**
+     * On update, ensures the message's relational IDs (`sessionId`, `id`) are not changed.
+     */
+    function isMessageDataImmutable() {
+      return request.resource.data.sessionId == resource.data.sessionId && request.resource.data.id == resource.data.id;
+    }
+
+
+    /**
+     * @description Rules for a user's own profile document.
+     * @path /users/{userId}
+     * @allow A signed-in user (auth.uid='user_abc') can (create) their own document at `/users/user_abc`.
+     * @deny An anonymous user cannot (get) any user document. A signed-in user (auth.uid='user_abc') cannot (get) another user's document at `/users/user_xyz`.
+     * @principle Restricts access to a user's own data tree and allows a user to create their own root document.
+     */
+    match /users/{userId} {
+      allow get: if isOwner(userId);
+      allow list: if false;
+      allow create: if isOwner(userId) && hasValidUserDataOnCreate(userId);
+      allow update: if isExistingOwner(userId) && isUserDataImmutable();
+      allow delete: if isExistingOwner(userId);
+    }
+
+    /**
+     * @description Rules for a user's learning sessions.
+     * @path /users/{userId}/sessions/{sessionId}
+     * @allow A signed-in user (auth.uid='user_abc') can (create) a new session at `/users/user_abc/sessions/session_123`.
+     * @deny A signed-in user (auth.uid='user_abc') cannot (list) sessions for another user at `/users/user_xyz/sessions`.
+     * @principle Enforces strict ownership. All session operations are restricted to the owner of the parent user document.
+     */
+    match /users/{userId}/sessions/{sessionId} {
+      allow get, list: if isOwner(userId);
+      allow create: if isOwner(userId) && hasValidSessionDataOnCreate(userId, sessionId);
+      allow update: if isExistingOwner(userId) && isSessionDataImmutable();
+      allow delete: if isExistingOwner(userId);
+    }
+
+    /**
+     * @description Rules for messages within a user's learning session.
+     * @path /users/{userId}/sessions/{sessionId}/messages/{messageId}
+     * @allow A signed-in user (auth.uid='user_abc') can (list) messages in their own session at `/users/user_abc/sessions/session_123/messages`.
+     * @deny A signed-in user (auth.uid='user_abc') cannot (create) a message in another user's session at `/users/user_xyz/sessions/session_456/messages/message_789`.
+     * @principle Inherits ownership from the top-level user. Access is restricted to the user who owns the entire data path.
+     */
+    match /users/{userId}/sessions/{sessionId}/messages/{messageId} {
+      allow get, list: if isOwner(userId);
+      allow create: if isOwner(userId) && hasValidMessageDataOnCreate(sessionId, messageId);
+      allow update: if isExistingOwner(userId) && isMessageDataImmutable();
+      allow delete: if isExistingOwner(userId);
+    }
+  }
+}
