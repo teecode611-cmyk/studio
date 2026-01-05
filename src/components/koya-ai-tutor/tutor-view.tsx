@@ -1,4 +1,3 @@
-// @/components/koya-ai-tutor/tutor-view.tsx
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -9,7 +8,7 @@ import {
   getHintAction,
   getSummaryAction,
 } from '@/app/actions';
-import { useAuth, useUser } from '@/firebase';
+import { useAuth, useUser, errorEmitter } from '@/firebase';
 import { initiateEmailSignIn, initiateEmailSignUp } from '@/firebase/non-blocking-login';
 
 import { Header } from './header';
@@ -45,6 +44,20 @@ export function TutorView() {
   const { toast } = useToast();
   const auth = useAuth();
   const { user, isUserLoading } = useUser();
+
+  useEffect(() => {
+    const handleAuthError = (error: Error) => {
+      handleError(error, 'Authentication failed.');
+      setIsAuthLoading(false); // Reset loading state on auth error
+    };
+    
+    // The type assertion is needed because the event map is not perfectly inferred in all contexts
+    errorEmitter.on('auth-error' as any, handleAuthError);
+
+    return () => {
+      errorEmitter.off('auth-error' as any, handleAuthError);
+    };
+  }, []);
 
   useEffect(() => {
     // If we have a user and problem data, it means they just logged in
