@@ -54,33 +54,38 @@ export function TutorView() {
       title: 'An error occurred',
       description: message,
     });
+    setIsLoading(false);
+    setIsAuthLoading(false);
+    setIsHintLoading(false);
+    setIsRecapLoading(false);
   }, [toast]);
 
   const handleStartSession = useCallback(async (data: ProblemSubmitData) => {
     setIsLoading(true);
+    setProblemData(null);
     try {
       const response: StartSessionOutput = await startSocraticSession(data);
-      setProblem(data.problem || 'the uploaded image');
+      const userMessage = data.problem || 'I uploaded an image of my problem.';
+      const problemDescription = data.problem || 'the uploaded image';
+      
+      setProblem(problemDescription);
       setMessages([
-        { role: 'user', content: data.problem || 'I uploaded an image of my problem.' },
+        { role: 'user', content: userMessage },
         { role: 'assistant', content: response.question },
       ]);
       setStepByStepProgress(response.updatedStepByStepProgress);
       setSessionState('active');
     } catch (error) {
       handleError(error, 'Could not start the session.');
-      // If starting fails, go back to idle so user can try again
-      setSessionState('idle');
+      setSessionState('idle'); // If starting fails, go back to idle
     } finally {
       setIsLoading(false);
-      setProblemData(null); // Clear pending problem data
     }
   }, [handleError]);
 
   useEffect(() => {
     const handleAuthError = (error: Error) => {
       handleError(error, 'Authentication failed.');
-      setIsAuthLoading(false); // Reset loading state on auth error
     };
     
     errorEmitter.on('auth-error', handleAuthError);
@@ -90,20 +95,18 @@ export function TutorView() {
     };
   }, [handleError]);
   
-  // This effect runs once the user has successfully logged in.
   useEffect(() => {
-    // If we have a user, and we have pending problem data, and we are not in an active session
     if (user && problemData && sessionState === 'idle') {
-      setIsAuthOpen(false); // Close the auth modal
-      setIsAuthLoading(false); // Stop auth loading
-      handleStartSession(problemData); // Start the session with the stored data
+      setIsAuthOpen(false);
+      setIsAuthLoading(false);
+      handleStartSession(problemData);
     }
   }, [user, problemData, handleStartSession, sessionState]);
 
 
   const triggerAuthOrStartSession = (data: ProblemSubmitData) => {
     if (!user) {
-      setProblemData(data); // Store problem data to use after login
+      setProblemData(data);
       setIsAuthOpen(true);
     } else {
       handleStartSession(data);
@@ -117,7 +120,6 @@ export function TutorView() {
     } else {
       initiateEmailSignIn(auth, data.email, data.password);
     }
-    // The useEffect hook will handle the rest once the user state changes
   };
 
   const handleSendMessage = async (response: string) => {
@@ -135,7 +137,7 @@ export function TutorView() {
       }
     } catch (error) {
       handleError(error, 'Could not get a response.');
-      setMessages((prev) => prev.slice(0, -1)); // Remove user message on error
+      setMessages((prev) => prev.slice(0, -1));
     } finally {
       setIsLoading(false);
     }
@@ -219,7 +221,6 @@ export function TutorView() {
         isOpen={isAuthOpen}
         onOpenChange={(open) => {
           if (!open) {
-            // If the user closes the dialog, reset auth-related state
             setIsAuthOpen(false);
             setIsAuthLoading(false);
             setProblemData(null);

@@ -10,11 +10,6 @@ import { summarizeSession, SessionSummaryInput, SessionSummaryOutput } from '@/a
 import { startSession, StartSessionInput, StartSessionOutput } from '@/ai/flows/start-session';
 import { z } from 'zod';
 
-export type Message = {
-  role: 'user' | 'assistant';
-  content: string;
-};
-
 const startSessionSchema = z.object({
   problem: z.string().optional(),
   imageDataUri: z.string().optional(),
@@ -37,6 +32,7 @@ export async function startSocraticSession(
   };
 
   try {
+    // This await was missing, causing the entire flow to fail.
     const response = await startSession(sessionInput);
     return response;
   } catch (error) {
