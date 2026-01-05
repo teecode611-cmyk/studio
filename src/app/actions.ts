@@ -17,7 +17,7 @@ export type Message = {
 };
 
 const startSessionSchema = z.object({
-  problem: z.string(),
+  problem: z.string().optional(),
   imageDataUri: z.string().optional(),
 }).refine(data => data.problem || data.imageDataUri, {
   message: 'Please either provide a problem description or an image.',
