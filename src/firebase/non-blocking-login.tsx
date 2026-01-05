@@ -23,10 +23,10 @@ export function initiateEmailSignUp(authInstance: Auth, email: string, password:
       // Firebase auth errors have a 'code' property.
       if (error instanceof FirebaseError && error.code === 'auth/email-already-in-use') {
         const customError = new Error('This email address is already in use. Please sign in or use a different email.');
-        errorEmitter.emit('auth-error' as any, customError);
+        errorEmitter.emit('auth-error', customError);
       } else {
         const genericError = new Error('Could not create an account. Please try again.');
-        errorEmitter.emit('auth-error' as any, genericError);
+        errorEmitter.emit('auth-error', genericError);
       }
     });
 }
@@ -47,10 +47,10 @@ export function initiateEmailSignIn(authInstance: Auth, email: string, password:
              customError = new Error('Could not sign in. Please try again.');
              break;
          }
-         errorEmitter.emit('auth-error' as any, customError);
+         errorEmitter.emit('auth-error', customError);
        } else {
         const genericError = new Error('An unexpected error occurred during sign-in.');
-        errorEmitter.emit('auth-error'as any, genericError);
+        errorEmitter.emit('auth-error', genericError);
        }
     });
 }

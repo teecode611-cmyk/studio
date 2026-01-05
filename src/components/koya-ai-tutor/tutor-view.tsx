@@ -95,13 +95,8 @@ export function TutorView() {
     if (user && problemData) {
       handleStartSession(problemData);
       setIsAuthOpen(false); // Close the modal
-    } else if (!isUserLoading && problemData) {
-      // User is not logged in, but tried to start a session.
-      // This case is handled by triggerAuthFlow, but we make sure
-      // auth loading is false.
-       setIsAuthLoading(false);
     }
-  }, [user, isUserLoading, problemData, handleStartSession]);
+  }, [user, problemData, handleStartSession]);
 
 
   const triggerAuthFlow = (data: ProblemSubmitData) => {
@@ -165,7 +160,7 @@ export function TutorView() {
       const dialogue = messages
         .map((m) => `${m.role === 'user' ? 'Student' : 'Tutor'}: ${m.content}`)
         .join('\n');
-      const result = await getSummaryAction(dialogue);
+      const result = await getSummaryAction( dialogue );
       setSummary(result.summary);
       setIsRecapOpen(true);
     } catch (error) {
