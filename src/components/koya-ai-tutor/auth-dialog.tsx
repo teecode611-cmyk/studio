@@ -58,7 +58,7 @@ export function AuthDialog({ isOpen, onOpenChange, onSubmit, isLoading }: AuthDi
                         <FormItem>
                             <FormLabel>Email</FormLabel>
                             <FormControl>
-                                <Input placeholder="you@example.com" {...field} />
+                                <Input placeholder="you@example.com" {...field} disabled={isLoading}/>
                             </FormControl>
                             <FormMessage />
                         </FormItem>
@@ -71,7 +71,7 @@ export function AuthDialog({ isOpen, onOpenChange, onSubmit, isLoading }: AuthDi
                         <FormItem>
                             <FormLabel>Password</FormLabel>
                             <FormControl>
-                                <Input type="password" placeholder="••••••••" {...field} />
+                                <Input type="password" placeholder="••••••••" {...field} disabled={isLoading}/>
                             </FormControl>
                             <FormMessage />
                         </FormItem>

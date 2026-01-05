@@ -36,6 +36,7 @@ export function TutorView() {
   const [summary, setSummary] = useState('');
   
   const [isLoading, setIsLoading] = useState(false);
+  const [isAuthLoading, setIsAuthLoading] = useState(false);
   const [isHintLoading, setIsHintLoading] = useState(false);
   const [isRecapLoading, setIsRecapLoading] = useState(false);
   const [isRecapOpen, setIsRecapOpen] = useState(false);
@@ -46,11 +47,18 @@ export function TutorView() {
   const { user, isUserLoading } = useUser();
 
   useEffect(() => {
+    // If we have a user and problem data, it means they just logged in
+    // to start a session.
     if (user && problemData) {
       handleStartSession(problemData);
-      setIsAuthOpen(false);
+      setIsAuthOpen(false); // Close the modal
+      setIsAuthLoading(false); // Stop the loading indicator
+    } else if (!isUserLoading) {
+      // If the user is not loading anymore and there's no pending problem,
+      // ensure the auth loading state is false.
+      setIsAuthLoading(false);
     }
-  }, [user, problemData]);
+  }, [user, isUserLoading, problemData]);
 
 
   const handleError = (error: unknown, defaultMessage: string) => {
@@ -64,7 +72,7 @@ export function TutorView() {
 
   const triggerAuthFlow = (data: ProblemSubmitData) => {
     if (!user) {
-      setProblemData(data);
+      setProblemData(data); // Store problem data to use after login
       setIsAuthOpen(true);
     } else {
       handleStartSession(data);
@@ -72,6 +80,7 @@ export function TutorView() {
   };
   
   const handleAuthSubmit = (data: AuthSubmitData) => {
+    setIsAuthLoading(true);
     if (data.type === 'signup') {
       initiateEmailSignUp(auth, data.email, data.password);
     } else {
@@ -94,7 +103,7 @@ export function TutorView() {
       handleError(error, 'Could not start the session.');
     } finally {
       setIsLoading(false);
-      setProblemData(null);
+      setProblemData(null); // Clear pending problem data
     }
   };
 
@@ -193,9 +202,18 @@ export function TutorView() {
       <RecapDialog isOpen={isRecapOpen} onOpenChange={resetSession} summary={summary} />
       <AuthDialog 
         isOpen={isAuthOpen}
-        onOpenChange={setIsAuthOpen}
+        onOpenChange={(open) => {
+          if (!open) {
+            // If the user closes the dialog, reset auth-related state
+            setIsAuthOpen(false);
+            setIsAuthLoading(false);
+            setProblemData(null);
+          } else {
+            setIsAuthOpen(true);
+          }
+        }}
         onSubmit={handleAuthSubmit}
-        isLoading={isUserLoading}
+        isLoading={isAuthLoading || isUserLoading}
       />
     </div>
   );
