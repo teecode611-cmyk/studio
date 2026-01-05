@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import {
   startSocraticSession,
@@ -46,6 +46,35 @@ export function TutorView() {
   const auth = useAuth();
   const { user, isUserLoading } = useUser();
 
+  const handleError = useCallback((error: unknown, defaultMessage: string) => {
+    const message = error instanceof Error ? error.message : defaultMessage;
+    toast({
+      variant: 'destructive',
+      title: 'An error occurred',
+      description: message,
+    });
+  }, [toast]);
+
+  const handleStartSession = useCallback(async (data: ProblemSubmitData) => {
+    setIsLoading(true);
+    setIsAuthLoading(false); // Ensure auth loading is stopped
+    try {
+      const response = await startSocraticSession(data);
+      setProblem(data.problem || 'the uploaded image');
+      setMessages([
+        { role: 'user', content: data.problem || 'I uploaded an image of my problem.' },
+        { role: 'assistant', content: response.question },
+      ]);
+      setStepByStepProgress(response.updatedStepByStepProgress);
+      setSessionState('active');
+    } catch (error) {
+      handleError(error, 'Could not start the session.');
+    } finally {
+      setIsLoading(false);
+      setProblemData(null); // Clear pending problem data
+    }
+  }, [handleError]);
+
   useEffect(() => {
     const handleAuthError = (error: Error) => {
       handleError(error, 'Authentication failed.');
@@ -57,7 +86,7 @@ export function TutorView() {
     return () => {
       errorEmitter.off('auth-error', handleAuthError);
     };
-  }, []);
+  }, [handleError]);
 
   useEffect(() => {
     // If we have a user and problem data, it means they just logged in
@@ -71,17 +100,8 @@ export function TutorView() {
       // auth loading is false.
        setIsAuthLoading(false);
     }
-  }, [user, isUserLoading, problemData]);
+  }, [user, isUserLoading, problemData, handleStartSession]);
 
-
-  const handleError = (error: unknown, defaultMessage: string) => {
-    const message = error instanceof Error ? error.message : defaultMessage;
-    toast({
-      variant: 'destructive',
-      title: 'An error occurred',
-      description: message,
-    });
-  };
 
   const triggerAuthFlow = (data: ProblemSubmitData) => {
     if (!user) {
@@ -99,26 +119,6 @@ export function TutorView() {
       initiateEmailSignUp(auth, data.email, data.password);
     } else {
       initiateEmailSignIn(auth, data.email, data.password);
-    }
-  };
-
-  const handleStartSession = async (data: ProblemSubmitData) => {
-    setIsLoading(true);
-    setIsAuthLoading(false); // Ensure auth loading is stopped
-    try {
-      const response = await startSocraticSession(data);
-      setProblem(data.problem || 'the uploaded image');
-      setMessages([
-        { role: 'user', content: data.problem || 'I uploaded an image of my problem.' },
-        { role: 'assistant', content: response.question },
-      ]);
-      setStepByStepProgress(response.updatedStepByStepProgress);
-      setSessionState('active');
-    } catch (error) {
-      handleError(error, 'Could not start the session.');
-    } finally {
-      setIsLoading(false);
-      setProblemData(null); // Clear pending problem data
     }
   };
 
