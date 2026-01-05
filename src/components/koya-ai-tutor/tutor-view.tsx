@@ -58,7 +58,6 @@ export function TutorView() {
 
   const handleStartSession = useCallback(async (data: ProblemSubmitData) => {
     setIsLoading(true);
-    setIsAuthLoading(false); // Ensure auth loading is stopped
     try {
       const response: StartSessionOutput = await startSocraticSession(data);
       setProblem(data.problem || 'the uploaded image');
@@ -88,7 +87,7 @@ export function TutorView() {
       errorEmitter.off('auth-error', handleAuthError);
     };
   }, [handleError]);
-
+  
   useEffect(() => {
     // If we have a user and problem data, it means they just logged in
     // to start a session.
@@ -103,7 +102,6 @@ export function TutorView() {
     if (!user) {
       setProblemData(data); // Store problem data to use after login
       setIsAuthOpen(true);
-      setIsAuthLoading(false); // Ensure loading is false when dialog opens
     } else {
       handleStartSession(data);
     }
@@ -128,7 +126,9 @@ export function TutorView() {
         stepByStepProgress,
       });
       setMessages((prev) => [...prev, { role: 'assistant', content: result.question }]);
-      setStepByStepProgress(result.updatedStepByStepProgress);
+      if (result.updatedStepByStepProgress) {
+        setStepByStepProgress(result.updatedStepByStepProgress);
+      }
     } catch (error) {
       handleError(error, 'Could not get a response.');
       setMessages((prev) => prev.slice(0, -1)); // Remove user message on error
