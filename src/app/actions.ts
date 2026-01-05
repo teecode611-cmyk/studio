@@ -2,7 +2,6 @@
 
 import {
   socraticQuestioning,
-  SocraticQuestioningInput,
   SocraticQuestioningOutput,
 } from '@/ai/flows/socratic-questioning';
 import { getHint, GetHintInput, GetHintOutput } from '@/ai/flows/progressive-hint-delivery';
@@ -32,7 +31,6 @@ export async function startSocraticSession(
   };
 
   try {
-    // This await was missing, causing the entire flow to fail.
     const response = await startSession(sessionInput);
     return response;
   } catch (error) {

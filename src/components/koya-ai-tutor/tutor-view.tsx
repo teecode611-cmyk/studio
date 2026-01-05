@@ -62,15 +62,21 @@ export function TutorView() {
 
   const handleStartSession = useCallback(async (data: ProblemSubmitData) => {
     setIsLoading(true);
-    setProblemData(null);
+    setProblemData(null); // Clear pending problem data
     try {
       const response: StartSessionOutput = await startSocraticSession(data);
-      const userMessage = data.problem || 'I uploaded an image of my problem.';
+      
+      const userMessageText = data.imageDataUri 
+        ? data.problem 
+          ? `I've uploaded an image and here's my question: ${data.problem}`
+          : 'I have uploaded an image of my problem.' 
+        : data.problem!;
+
       const problemDescription = data.problem || 'the uploaded image';
       
       setProblem(problemDescription);
       setMessages([
-        { role: 'user', content: userMessage },
+        { role: 'user', content: userMessageText },
         { role: 'assistant', content: response.question },
       ]);
       setStepByStepProgress(response.updatedStepByStepProgress);
@@ -82,7 +88,7 @@ export function TutorView() {
       setIsLoading(false);
     }
   }, [handleError]);
-
+  
   useEffect(() => {
     const handleAuthError = (error: Error) => {
       handleError(error, 'Authentication failed.');
@@ -95,21 +101,22 @@ export function TutorView() {
     };
   }, [handleError]);
   
+  // This effect runs when the user successfully logs in and there's a pending problem to submit.
   useEffect(() => {
     if (user && problemData && sessionState === 'idle') {
       setIsAuthOpen(false);
       setIsAuthLoading(false);
       handleStartSession(problemData);
     }
-  }, [user, problemData, handleStartSession, sessionState]);
+  }, [user, problemData, sessionState, handleStartSession]);
 
 
   const triggerAuthOrStartSession = (data: ProblemSubmitData) => {
     if (!user) {
-      setProblemData(data);
-      setIsAuthOpen(true);
+      setProblemData(data); // Save the problem data
+      setIsAuthOpen(true);   // Open the auth modal
     } else {
-      handleStartSession(data);
+      handleStartSession(data); // If user is already logged in, start session
     }
   };
   
@@ -120,6 +127,7 @@ export function TutorView() {
     } else {
       initiateEmailSignIn(auth, data.email, data.password);
     }
+    // The useEffect hook will handle starting the session upon successful login
   };
 
   const handleSendMessage = async (response: string) => {
@@ -153,7 +161,8 @@ export function TutorView() {
       });
       setMessages((prev) => [...prev, { role: 'hint', content: result.hint }]);
       setHints((prev) => [...prev, result.hint]);
-    } catch (error) {
+    } catch (error)
+      {
       handleError(error, 'Could not retrieve a hint.');
     } finally {
       setIsHintLoading(false);
@@ -184,6 +193,7 @@ export function TutorView() {
     setHints([]);
     setSummary('');
     setIsRecapOpen(false);
+    setProblemData(null);
   };
 
   return (
@@ -223,7 +233,7 @@ export function TutorView() {
           if (!open) {
             setIsAuthOpen(false);
             setIsAuthLoading(false);
-            setProblemData(null);
+            setProblemData(null); // Clear pending data if dialog is closed
           } else {
             setIsAuthOpen(true);
           }
