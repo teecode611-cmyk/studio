@@ -8,8 +8,9 @@ import {
   getHintAction,
   getSummaryAction,
 } from '@/app/actions';
-import { useAuth, useUser, errorEmitter } from '@/firebase';
+import { useAuth, useUser } from '@/firebase';
 import { initiateEmailSignIn, initiateEmailSignUp } from '@/firebase/non-blocking-login';
+import { errorEmitter } from '@/firebase/error-emitter';
 
 import { Header } from './header';
 import { ProblemForm, type ProblemSubmitData } from './problem-form';
@@ -51,11 +52,10 @@ export function TutorView() {
       setIsAuthLoading(false); // Reset loading state on auth error
     };
     
-    // The type assertion is needed because the event map is not perfectly inferred in all contexts
-    errorEmitter.on('auth-error' as any, handleAuthError);
+    errorEmitter.on('auth-error', handleAuthError);
 
     return () => {
-      errorEmitter.off('auth-error' as any, handleAuthError);
+      errorEmitter.off('auth-error', handleAuthError);
     };
   }, []);
 

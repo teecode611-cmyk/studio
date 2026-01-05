@@ -8,6 +8,7 @@ import {
 } from '@/ai/flows/socratic-questioning';
 import { getHint, GetHintInput, GetHintOutput } from '@/ai/flows/progressive-hint-delivery';
 import { summarizeSession, SessionSummaryInput, SessionSummaryOutput } from '@/ai/flows/session-summary';
+import { startSession, StartSessionInput, StartSessionOutput } from '@/ai/flows/start-session';
 import { z } from 'zod';
 
 export type Message = {
@@ -25,21 +26,19 @@ const startSessionSchema = z.object({
 
 export async function startSocraticSession(
   input: z.infer<typeof startSessionSchema>
-): Promise<SocraticQuestioningOutput> {
+): Promise<StartSessionOutput> {
   const validatedInput = startSessionSchema.safeParse(input);
   if (!validatedInput.success) {
     throw new Error(validatedInput.error.errors[0].message);
   }
 
-  const socraticInput: SocraticQuestioningInput = {
+  const sessionInput: StartSessionInput = {
     problem: validatedInput.data.problem,
     imageDataUri: validatedInput.data.imageDataUri,
-    studentResponse:
-      "I have a new problem I'd like to work on. Please guide me.",
   };
 
   try {
-    const response = await socraticQuestioning(socraticInput);
+    const response = await startSession(sessionInput);
     return response;
   } catch (error) {
     console.error('Error in startSocraticSession:', error);
