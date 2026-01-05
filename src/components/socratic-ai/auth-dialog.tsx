@@ -1,4 +1,4 @@
-// @/components/koya-ai-tutor/auth-dialog.tsx
+// @/components/socratic-ai/auth-dialog.tsx
 import {
   Dialog,
   DialogContent,

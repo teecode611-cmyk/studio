@@ -22,7 +22,7 @@ export type SessionSummaryInput = z.infer<typeof SessionSummaryInputSchema>;
 const SessionSummaryOutputSchema = z.object({
   summary: z
     .string()
-    .describe('A concise summary of the key learnings from the session.'),
+    .describe('A concise summary of the key skills learned during the session, formatted as a bulleted list.'),
 });
 export type SessionSummaryOutput = z.infer<typeof SessionSummaryOutputSchema>;
 
@@ -35,8 +35,8 @@ const prompt = ai.definePrompt({
   input: {schema: SessionSummaryInputSchema},
   output: {schema: SessionSummaryOutputSchema},
   prompt: `You are an AI tutor who has just completed a session with a student.
-Your task is to summarize the key learnings from the session in a concise and informative manner.
-The summary should be accurate, relevant, and helpful to the student for reinforcing their understanding.
+Your task is to summarize the "Skills Learned" from the session. The summary should be a bulleted list of the key concepts and skills the student practiced or learned.
+Focus on the "how-to" aspects and the core principles they engaged with.
 
 Session Dialogue:
 {{dialogue}}`,

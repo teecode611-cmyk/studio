@@ -1,7 +1,7 @@
 // @/components/socratic-ai/tutor-view.tsx
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import {
   startSocraticSession,
@@ -9,12 +9,15 @@ import {
   getHintAction,
   getSummaryAction,
 } from '@/app/actions';
+import { useAuth, useUser } from '@/firebase';
+import { initiateEmailSignIn, initiateEmailSignUp } from '@/firebase/non-blocking-login';
 
 import { Header } from './header';
-import { ProblemForm } from './problem-form';
+import { ProblemForm, type ProblemSubmitData } from './problem-form';
 import { ChatPanel } from './chat-panel';
 import { SidebarPanel } from './sidebar-panel';
 import { RecapDialog } from './recap-dialog';
+import { AuthDialog, type AuthSubmitData } from './auth-dialog';
 
 export type Message = {
   role: 'user' | 'assistant' | 'hint';
@@ -27,16 +30,36 @@ export function TutorView() {
   const [sessionState, setSessionState] = useState<SessionState>('idle');
   const [messages, setMessages] = useState<Message[]>([]);
   const [problem, setProblem] = useState('');
+  const [problemData, setProblemData] = useState<ProblemSubmitData | null>(null);
   const [stepByStepProgress, setStepByStepProgress] = useState<string | undefined>(undefined);
   const [hints, setHints] = useState<string[]>([]);
   const [summary, setSummary] = useState('');
   
   const [isLoading, setIsLoading] = useState(false);
+  const [isAuthLoading, setIsAuthLoading] = useState(false);
   const [isHintLoading, setIsHintLoading] = useState(false);
   const [isRecapLoading, setIsRecapLoading] = useState(false);
   const [isRecapOpen, setIsRecapOpen] = useState(false);
+  const [isAuthOpen, setIsAuthOpen] = useState(false);
 
   const { toast } = useToast();
+  const auth = useAuth();
+  const { user, isUserLoading } = useUser();
+
+  useEffect(() => {
+    // If we have a user and problem data, it means they just logged in
+    // to start a session.
+    if (user && problemData) {
+      handleStartSession(problemData);
+      setIsAuthOpen(false); // Close the modal
+    } else if (!isUserLoading && problemData) {
+      // User is not logged in, but tried to start a session.
+      // This case is handled by triggerAuthFlow, but we make sure
+      // auth loading is false.
+       setIsAuthLoading(false);
+    }
+  }, [user, isUserLoading, problemData]);
+
 
   const handleError = (error: unknown, defaultMessage: string) => {
     const message = error instanceof Error ? error.message : defaultMessage;
@@ -47,13 +70,33 @@ export function TutorView() {
     });
   };
 
-  const handleStartSession = async (newProblem: string) => {
+  const triggerAuthFlow = (data: ProblemSubmitData) => {
+    if (!user) {
+      setProblemData(data); // Store problem data to use after login
+      setIsAuthOpen(true);
+      setIsAuthLoading(false); // Ensure loading is false when dialog opens
+    } else {
+      handleStartSession(data);
+    }
+  };
+  
+  const handleAuthSubmit = (data: AuthSubmitData) => {
+    setIsAuthLoading(true);
+    if (data.type === 'signup') {
+      initiateEmailSignUp(auth, data.email, data.password);
+    } else {
+      initiateEmailSignIn(auth, data.email, data.password);
+    }
+  };
+
+  const handleStartSession = async (data: ProblemSubmitData) => {
     setIsLoading(true);
+    setIsAuthLoading(false); // Ensure auth loading is stopped
     try {
-      const response = await startSocraticSession(newProblem);
-      setProblem(newProblem);
+      const response = await startSocraticSession(data);
+      setProblem(data.problem || 'the uploaded image');
       setMessages([
-        { role: 'user', content: newProblem },
+        { role: 'user', content: data.problem || 'I uploaded an image of my problem.' },
         { role: 'assistant', content: response.question },
       ]);
       setStepByStepProgress(response.updatedStepByStepProgress);
@@ -62,6 +105,7 @@ export function TutorView() {
       handleError(error, 'Could not start the session.');
     } finally {
       setIsLoading(false);
+      setProblemData(null); // Clear pending problem data
     }
   };
 
@@ -132,7 +176,7 @@ export function TutorView() {
       <Header />
       <main className="flex-1">
         {sessionState === 'idle' ? (
-          <ProblemForm onSubmit={handleStartSession} isLoading={isLoading} />
+          <ProblemForm onSubmit={triggerAuthFlow} isLoading={isLoading || isUserLoading || isAuthLoading} />
         ) : (
           <div className="container mx-auto p-4 lg:p-6 h-[calc(100vh-4rem-1px)]">
             <div className="grid h-full lg:grid-cols-3 gap-6">
@@ -158,6 +202,21 @@ export function TutorView() {
         )}
       </main>
       <RecapDialog isOpen={isRecapOpen} onOpenChange={resetSession} summary={summary} />
+      <AuthDialog 
+        isOpen={isAuthOpen}
+        onOpenChange={(open) => {
+          if (!open) {
+            // If the user closes the dialog, reset auth-related state
+            setIsAuthOpen(false);
+            setIsAuthLoading(false);
+            setProblemData(null);
+          } else {
+            setIsAuthOpen(true);
+          }
+        }}
+        onSubmit={handleAuthSubmit}
+        isLoading={isAuthLoading}
+      />
     </div>
   );
 }
