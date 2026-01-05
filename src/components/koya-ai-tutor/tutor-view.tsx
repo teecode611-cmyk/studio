@@ -1,7 +1,7 @@
 // @/components/koya-ai-tutor/tutor-view.tsx
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import {
   startSocraticSession,
@@ -9,12 +9,15 @@ import {
   getHintAction,
   getSummaryAction,
 } from '@/app/actions';
+import { useAuth, useUser } from '@/firebase';
+import { initiateEmailSignIn, initiateEmailSignUp } from '@/firebase/non-blocking-login';
 
 import { Header } from './header';
 import { ProblemForm, type ProblemSubmitData } from './problem-form';
 import { ChatPanel } from './chat-panel';
 import { SidebarPanel } from './sidebar-panel';
 import { RecapDialog } from './recap-dialog';
+import { AuthDialog, type AuthSubmitData } from './auth-dialog';
 
 export type Message = {
   role: 'user' | 'assistant' | 'hint';
@@ -27,6 +30,7 @@ export function TutorView() {
   const [sessionState, setSessionState] = useState<SessionState>('idle');
   const [messages, setMessages] = useState<Message[]>([]);
   const [problem, setProblem] = useState('');
+  const [problemData, setProblemData] = useState<ProblemSubmitData | null>(null);
   const [stepByStepProgress, setStepByStepProgress] = useState<string | undefined>(undefined);
   const [hints, setHints] = useState<string[]>([]);
   const [summary, setSummary] = useState('');
@@ -35,8 +39,19 @@ export function TutorView() {
   const [isHintLoading, setIsHintLoading] = useState(false);
   const [isRecapLoading, setIsRecapLoading] = useState(false);
   const [isRecapOpen, setIsRecapOpen] = useState(false);
+  const [isAuthOpen, setIsAuthOpen] = useState(false);
 
   const { toast } = useToast();
+  const auth = useAuth();
+  const { user, isUserLoading } = useUser();
+
+  useEffect(() => {
+    if (user && problemData) {
+      handleStartSession(problemData);
+      setIsAuthOpen(false);
+    }
+  }, [user, problemData]);
+
 
   const handleError = (error: unknown, defaultMessage: string) => {
     const message = error instanceof Error ? error.message : defaultMessage;
@@ -45,6 +60,23 @@ export function TutorView() {
       title: 'An error occurred',
       description: message,
     });
+  };
+
+  const triggerAuthFlow = (data: ProblemSubmitData) => {
+    if (!user) {
+      setProblemData(data);
+      setIsAuthOpen(true);
+    } else {
+      handleStartSession(data);
+    }
+  };
+  
+  const handleAuthSubmit = (data: AuthSubmitData) => {
+    if (data.type === 'signup') {
+      initiateEmailSignUp(auth, data.email, data.password);
+    } else {
+      initiateEmailSignIn(auth, data.email, data.password);
+    }
   };
 
   const handleStartSession = async (data: ProblemSubmitData) => {
@@ -62,6 +94,7 @@ export function TutorView() {
       handleError(error, 'Could not start the session.');
     } finally {
       setIsLoading(false);
+      setProblemData(null);
     }
   };
 
@@ -132,7 +165,7 @@ export function TutorView() {
       <Header />
       <main className="flex-1">
         {sessionState === 'idle' ? (
-          <ProblemForm onSubmit={handleStartSession} isLoading={isLoading} />
+          <ProblemForm onSubmit={triggerAuthFlow} isLoading={isLoading || isUserLoading} />
         ) : (
           <div className="container mx-auto p-4 lg:p-6 h-[calc(100vh-4rem-1px)]">
             <div className="grid h-full lg:grid-cols-3 gap-6">
@@ -158,6 +191,12 @@ export function TutorView() {
         )}
       </main>
       <RecapDialog isOpen={isRecapOpen} onOpenChange={resetSession} summary={summary} />
+      <AuthDialog 
+        isOpen={isAuthOpen}
+        onOpenChange={setIsAuthOpen}
+        onSubmit={handleAuthSubmit}
+        isLoading={isUserLoading}
+      />
     </div>
   );
 }
