@@ -8,7 +8,7 @@
       "properties": {
         "id": {
           "type": "string",
-          "description": "Unique identifier for the user entity."
+          "description": "Unique identifier for the user. (Primary Key)"
         },
         "email": {
           "type": "string",
@@ -17,91 +17,69 @@
         },
         "name": {
           "type": "string",
-          "description": "Full name of the user."
-        },
-        "registrationDate": {
-          "type": "string",
-          "description": "Date and time when the user registered.",
-          "format": "date-time"
+          "description": "Name of the user."
         }
       },
       "required": [
         "id",
-        "email",
-        "name",
-        "registrationDate"
+        "email"
       ]
     },
     "Session": {
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "Session",
       "type": "object",
-      "description": "Represents a learning session between a user and the AI tutor.",
+      "description": "Represents a single tutoring session.",
       "properties": {
         "id": {
           "type": "string",
-          "description": "Unique identifier for the session entity."
+          "description": "Unique identifier for the session. (Primary Key)"
         },
         "userId": {
           "type": "string",
           "description": "Reference to User. (Relationship: User 1:N Session)"
         },
-        "startTime": {
+        "timestamp": {
           "type": "string",
-          "description": "Date and time when the session started.",
-          "format": "date-time"
-        },
-        "endTime": {
-          "type": "string",
-          "description": "Date and time when the session ended.",
+          "description": "Timestamp indicating when the session started.",
           "format": "date-time"
         },
         "topic": {
           "type": "string",
-          "description": "The topic covered during the session."
+          "description": "The topic covered in the session (e.g., 'ratios', 'unit conversions')."
+        },
+        "messages": {
+          "type": "array",
+          "description": "Array of messages exchanged during the session.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "keyLearnings": {
+          "type": "array",
+          "description": "Array of key learning points from the session.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "summary": {
+          "type": "string",
+          "description": "Brief summary of what was learned during the session."
+        },
+        "completed": {
+          "type": "boolean",
+          "description": "Indicates whether the session has been completed."
         }
       },
       "required": [
         "id",
         "userId",
-        "startTime",
-        "topic"
-      ]
-    },
-    "Message": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "Message",
-      "type": "object",
-      "description": "Represents a message exchanged during a learning session.",
-      "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the message entity."
-        },
-        "sessionId": {
-          "type": "string",
-          "description": "Reference to Session. (Relationship: Session 1:N Message)"
-        },
-        "sender": {
-          "type": "string",
-          "description": "Indicates who sent the message (e.g., 'user' or 'tutor')."
-        },
-        "content": {
-          "type": "string",
-          "description": "The content of the message."
-        },
-        "timestamp": {
-          "type": "string",
-          "description": "Date and time when the message was sent.",
-          "format": "date-time"
-        }
-      },
-      "required": [
-        "id",
-        "sessionId",
-        "sender",
-        "content",
-        "timestamp"
+        "timestamp",
+        "topic",
+        "messages",
+        "keyLearnings",
+        "summary",
+        "completed"
       ]
     }
   },
@@ -114,66 +92,42 @@
   "firestore": {
     "structure": [
       {
-        "path": "/users/{userId}",
+        "path": "users/{userId}",
         "definition": {
           "entityName": "User",
           "schema": {
             "$ref": "#/backend/entities/User"
           },
-          "description": "Stores user profile information. Path-based ownership: Only the user with the matching {userId} can access this document.",
+          "description": "Collection of user profiles, each identified by their Firebase Auth UID.",
           "params": [
             {
               "name": "userId",
-              "description": "The unique identifier of the user."
+              "description": "The Firebase Auth UID of the user."
             }
           ]
         }
       },
       {
-        "path": "/users/{userId}/sessions/{sessionId}",
+        "path": "users/{userId}/sessions/{sessionId}",
         "definition": {
           "entityName": "Session",
           "schema": {
             "$ref": "#/backend/entities/Session"
           },
-          "description": "Stores learning session data for a specific user. Path-based ownership: Only the user with the matching {userId} can access sessions in this path.",
+          "description": "Subcollection of user sessions, each identified by an auto-generated session ID.  Includes session topic, messages, key learnings, a summary, and a completion status.",
           "params": [
             {
               "name": "userId",
-              "description": "The unique identifier of the user."
+              "description": "The Firebase Auth UID of the user."
             },
             {
               "name": "sessionId",
-              "description": "The unique identifier of the session."
-            }
-          ]
-        }
-      },
-      {
-        "path": "/users/{userId}/sessions/{sessionId}/messages/{messageId}",
-        "definition": {
-          "entityName": "Message",
-          "schema": {
-            "$ref": "#/backend/entities/Message"
-          },
-          "description": "Stores messages exchanged during a learning session. Path-based ownership: Only the user with the matching {userId} can access messages in this path.",
-          "params": [
-            {
-              "name": "userId",
-              "description": "The unique identifier of the user."
-            },
-            {
-              "name": "sessionId",
-              "description": "The unique identifier of the session."
-            },
-            {
-              "name": "messageId",
-              "description": "The unique identifier of the message."
+              "description": "The auto-generated ID of the session."
             }
           ]
         }
       }
     ],
-    "reasoning": "The Firestore structure is designed to support the SocraticAI application, focusing on user sessions and messages exchanged within those sessions. It prioritizes authorization independence, clarity, and scalability.\n\nAuthorization Independence is achieved by using path-based ownership for user data and session data. Each session and message is nested under the user's document, eliminating the need for `get()` calls in security rules to verify ownership. For example, the sessions collection path `/users/{userId}/sessions/{sessionId}` makes it straightforward to write rules that only allow the user with the matching `userId` to access the session.\n\nThe structure supports secure `list` operations (QAPs) through structural segregation and path-based ownership. Because sessions and messages are stored under each user, listing sessions and messages is naturally scoped to that user. This prevents unauthorized access to other users' data.\n\nExplicit State Modeling: The design assumes future inclusion of a `status` field within session documents, allowing clear tracking of session lifecycle states (e.g., `active`, `completed`).\n\nThe design utilizes hierarchical paths to define the relationships between Users, Sessions, and Messages. This direct parent-child relationship (User 1:N Session, Session 1:N Message) facilitates simple and efficient security rules based on ownership. The message subcollection's access depends on the parent user's attributes, and this is achieved by copying the userId into every document in the session and message subcollections, eliminating `get()` calls in rules.\n\nClarity of Intent is achieved through semantic naming conventions. For example, `userId` always refers to the user's unique identifier, and `sessionId` refers to the session's unique identifier."
+    "reasoning": "The Firestore structure is designed to ensure secure and efficient access to user session data for the SocraticAI tutoring application. It leverages path-based ownership for session data within user profiles, which allows straightforward security rules based on the authenticated user's ID. Denormalization is not required in this design as all session data is private to the user and stored under their user ID. This ensures authorization independence because access control is solely based on the path, not on data stored within the documents. The structure facilitates QAPs (Rules are not Filters) by ensuring each collection (`users/{userId}/sessions`) contains data with the same security requirements."
   }
 }
