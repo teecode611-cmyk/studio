@@ -31,7 +31,6 @@ export function Header({ onLogoClick }: HeaderProps) {
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
         <button onClick={onLogoClick} className="flex items-center gap-3">
           <KoyaLogoHeader />
-          <span className="font-headline text-2xl font-bold text-foreground">Koya</span>
         </button>
         <Button variant="link" className="font-headline text-lg font-bold text-accent hover:text-accent/80">
           Log In
