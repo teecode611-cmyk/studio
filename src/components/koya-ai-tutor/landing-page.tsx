@@ -3,6 +3,7 @@
 import { useState }from 'react';
 import { Button } from '@/components/ui/button';
 import { ProblemForm } from './problem-form';
+import { useRouter } from 'next/navigation';
 
 const KoyaLogo = () => (
     <svg width="128" height="45" viewBox="0 0 200 70" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -17,6 +18,7 @@ const KoyaLogo = () => (
 export function LandingPage() {
   const [showProblemForm, setShowProblemForm] = useState(false);
   const [formMode, setFormMode] = useState<'text' | 'upload'>('text');
+  const router = useRouter();
 
   const handleStart = (mode: 'text' | 'upload') => {
     setFormMode(mode);
@@ -29,7 +31,8 @@ export function LandingPage() {
 
   const handleSessionStart = (data: {problem: string, imageDataUri?: string}) => {
     console.log("Starting session with:", data);
-    // Here you would transition to the tutor view
+    // This is where we would transition to the tutor view
+    // For now, we just log the data
   }
 
   if (showProblemForm) {
@@ -52,7 +55,7 @@ export function LandingPage() {
                 <h1 className="font-headline text-2xl font-bold tracking-tight text-foreground">
                     Hi! I'm Koya AI Tutor
                 </h1>
-                <p className="text-lg text-foreground/80">
+                <p className="text-lg font-bold text-accent">
                     Learn with guidance - not answers.
                 </p>
             </div>
