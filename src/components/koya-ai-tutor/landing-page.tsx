@@ -51,13 +51,13 @@ export function LandingPage() {
         {/* Top Section */}
         <div className="flex flex-1 flex-col items-center justify-center text-center">
             <KoyaLogo />
+            <p className="mt-2 text-lg font-bold text-accent">
+                Learn with guidance - not answers.
+            </p>
             <div className="mt-4 space-y-1">
                 <h1 className="font-headline text-2xl font-bold tracking-tight text-foreground">
                     Hi! I'm Koya AI Tutor
                 </h1>
-                <p className="text-lg font-bold text-accent">
-                    Learn with guidance - not answers.
-                </p>
             </div>
         </div>
 
