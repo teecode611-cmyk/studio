@@ -4,10 +4,10 @@ import { useState, useCallback } from 'react';
 import { useToast } from '@/hooks/use-toast';
 
 import { Header } from './header';
-import { ProblemForm, type ProblemSubmitData } from './problem-form';
 import { ChatPanel } from './chat-panel';
 import { SidebarPanel } from './sidebar-panel';
 import { RecapDialog } from './recap-dialog';
+import { LandingPage } from './landing-page';
 
 export type Message = {
   role: 'user' | 'assistant' | 'hint';
@@ -20,6 +20,8 @@ export function TutorView() {
   const [sessionState, setSessionState] = useState<SessionState>('idle');
   const [messages, setMessages] = useState<Message[]>([]);
   const [problem, setProblem] = useState('');
+  const [summary, setSummary] = useState('');
+  const [progress, setProgress] = useState('');
   
   const [isLoading, setIsLoading] = useState(false);
   const [isHintLoading, setIsHintLoading] = useState(false);
@@ -42,17 +44,20 @@ export function TutorView() {
   }, [toast]);
 
 
-  const handleStartSession = useCallback(async (data: ProblemSubmitData) => {
+  const handleStartSession = useCallback(async (data: {problem: string, imageDataUri?: string}) => {
     setIsLoading(true);
+    setMessages([]);
+    setProblem(data.problem || 'Image based problem');
+    
     // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 1000));
     try {
-      const problemDescription = data.problem || 'the uploaded image';
-      setProblem(problemDescription);
+      const firstMessage = data.imageDataUri ? `I've uploaded an image. Here's a description: ${data.problem}` : data.problem;
       setMessages([
-        { role: 'user', content: data.problem || "I've uploaded an image." },
+        { role: 'user', content: firstMessage },
         { role: 'assistant', content: "This is an interesting problem. What have you tried so far?" }
       ]);
+      setProgress("1. Understand the problem.\n2. Devise a plan.");
       setSessionState('active');
     } catch (error) {
       handleError('Could not start session', error);
@@ -99,6 +104,7 @@ export function TutorView() {
      // Simulate API call
      await new Promise(resolve => setTimeout(resolve, 1000));
     try {
+      setSummary("- You learned how to start a new session.\n- You practiced sending messages.");
       setIsRecapOpen(true);
     } catch (error) {
       handleError('Could not generate recap', error);
@@ -111,40 +117,48 @@ export function TutorView() {
     setSessionState('idle');
     setMessages([]);
     setProblem('');
+    setSummary('');
+    setProgress('');
     setIsRecapOpen(false);
   };
+  
+  const handleBackToHome = () => {
+    resetSession();
+  }
 
   return (
-    <div className="flex min-h-screen flex-col">
-      <Header />
-      <main className="flex-1">
-        {sessionState === 'idle' ? (
-          <ProblemForm onSubmit={handleStartSession} isLoading={isLoading} />
-        ) : (
-          <div className="container mx-auto p-4 lg:p-6 h-[calc(100vh-4rem-1px)]">
-            <div className="grid h-full lg:grid-cols-3 gap-6">
-              <div className="lg:col-span-2 h-full">
-                <ChatPanel
-                  messages={messages}
-                  isLoading={isLoading}
-                  onSendMessage={handleSendMessage}
-                  problem={problem}
-                />
-              </div>
-              <div className="hidden lg:block">
-                <SidebarPanel
-                  progress={"1. Understand the problem.\n2. Devise a plan."}
-                  onGetHint={handleGetHint}
-                  onEndSession={handleEndSession}
-                  isHintLoading={isHintLoading}
-                  isRecapLoading={isRecapLoading}
-                />
+    <div className="flex min-h-screen flex-col bg-[#FDFCEC]">
+      {sessionState === 'idle' ? (
+        <LandingPage />
+      ) : (
+        <>
+          <Header onLogoClick={handleBackToHome} />
+          <main className="flex-1">
+            <div className="container mx-auto p-4 lg:p-6 h-[calc(100vh-4rem-1px)]">
+              <div className="grid h-full lg:grid-cols-3 gap-6">
+                <div className="lg:col-span-2 h-full">
+                  <ChatPanel
+                    messages={messages}
+                    isLoading={isLoading}
+                    onSendMessage={handleSendMessage}
+                    problem={problem}
+                  />
+                </div>
+                <div className="hidden lg:block">
+                  <SidebarPanel
+                    progress={progress}
+                    onGetHint={handleGetHint}
+                    onEndSession={handleEndSession}
+                    isHintLoading={isHintLoading}
+                    isRecapLoading={isRecapLoading}
+                  />
+                </div>
               </div>
             </div>
-          </div>
-        )}
-      </main>
-      <RecapDialog isOpen={isRecapOpen} onOpenChange={resetSession} summary={"- You learned how to start a new session.\n- You practiced sending messages."} />
+          </main>
+          <RecapDialog isOpen={isRecapOpen} onOpenChange={resetSession} summary={summary} />
+        </>
+      )}
     </div>
   );
 }

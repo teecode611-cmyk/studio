@@ -1,4 +1,3 @@
-// @/components/koya-ai-tutor/problem-form.tsx
 'use client';
 
 import { useState } from 'react';
@@ -11,7 +10,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Loader2, UploadCloud } from 'lucide-react';
+import { Loader2, UploadCloud, ArrowLeft } from 'lucide-react';
 import Image from 'next/image';
 
 const formSchema = z.object({
@@ -33,9 +32,11 @@ export interface ProblemSubmitData {
 interface ProblemFormProps {
   onSubmit: (data: ProblemSubmitData) => void;
   isLoading: boolean;
+  onBack: () => void;
+  defaultMode: 'text' | 'upload';
 }
 
-export function ProblemForm({ onSubmit, isLoading }: ProblemFormProps) {
+export function ProblemForm({ onSubmit, isLoading, onBack, defaultMode }: ProblemFormProps) {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -77,10 +78,18 @@ export function ProblemForm({ onSubmit, isLoading }: ProblemFormProps) {
   };
 
   return (
-    <div className="flex h-[calc(100vh-4rem-1px)] items-center justify-center p-4">
-      <Card className="w-full max-w-2xl shadow-lg">
+    <div className="flex h-screen items-center justify-center p-4 bg-[#FDFCEC]">
+       <Button
+          variant="ghost"
+          onClick={onBack}
+          className="absolute top-6 left-6 text-lg"
+        >
+          <ArrowLeft className="mr-2 h-5 w-5" />
+          Back
+        </Button>
+      <Card className="w-full max-w-2xl shadow-lg bg-card/80">
         <CardHeader>
-          <CardTitle className="font-headline text-3xl">Welcome to Koya AI Tutor</CardTitle>
+          <CardTitle className="font-headline text-3xl">What's the problem?</CardTitle>
           <CardDescription>
             Enter a problem or question you need help with. Your AI tutor will guide you to the solution without giving away the answer.
           </CardDescription>
@@ -88,10 +97,10 @@ export function ProblemForm({ onSubmit, isLoading }: ProblemFormProps) {
         <CardContent>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-6">
-              <Tabs defaultValue="text" className="w-full">
+              <Tabs defaultValue={defaultMode} className="w-full">
                 <TabsList className="grid w-full grid-cols-2">
-                  <TabsTrigger value="text">Type Problem</TabsTrigger>
-                  <TabsTrigger value="upload">Upload Image</TabsTrigger>
+                  <TabsTrigger value="text">Type Question</TabsTrigger>
+                  <TabsTrigger value="upload">Upload Photo</TabsTrigger>
                 </TabsList>
                 <TabsContent value="text" className="pt-4">
                   <FormField
@@ -99,11 +108,11 @@ export function ProblemForm({ onSubmit, isLoading }: ProblemFormProps) {
                     name="problem"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-lg">Your Problem</FormLabel>
+                        <FormLabel className="text-lg sr-only">Your Problem</FormLabel>
                         <FormControl>
                           <Textarea
                             placeholder="For example: 'How do I prove that the sum of angles in a triangle is 180 degrees?'"
-                            className="min-h-[120px] resize-none text-base"
+                            className="min-h-[150px] resize-none text-base"
                             {...field}
                           />
                         </FormControl>
@@ -113,61 +122,63 @@ export function ProblemForm({ onSubmit, isLoading }: ProblemFormProps) {
                   />
                 </TabsContent>
                 <TabsContent value="upload" className="pt-4">
-                  <FormField
-                    control={form.control}
-                    name="image"
-                    render={() => (
-                      <FormItem>
-                        <FormLabel className="text-lg">Upload an Image</FormLabel>
-                        <FormControl>
-                          <div className="relative flex justify-center w-full px-8 py-10 border-2 border-dashed rounded-md">
-                            <div className="text-center">
-                              {imagePreview ? (
-                                <Image
-                                  src={imagePreview}
-                                  alt="Problem preview"
-                                  width={200}
-                                  height={200}
-                                  className="max-h-40 w-auto rounded-md object-contain"
-                                />
-                              ) : (
-                                <>
-                                  <UploadCloud className="w-12 h-12 mx-auto text-muted-foreground" />
-                                  <p className="mt-4 text-sm text-muted-foreground">
-                                    Drag and drop your image here, or click to browse.
-                                  </p>
-                                </>
-                              )}
+                  <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+                    <FormField
+                      control={form.control}
+                      name="image"
+                      render={() => (
+                        <FormItem>
+                          <FormLabel className="text-lg sr-only">Upload an Image</FormLabel>
+                          <FormControl>
+                            <div className="relative flex justify-center items-center w-full h-full min-h-[150px] px-8 py-10 border-2 border-dashed rounded-md">
+                              <div className="text-center">
+                                {imagePreview ? (
+                                  <Image
+                                    src={imagePreview}
+                                    alt="Problem preview"
+                                    width={200}
+                                    height={200}
+                                    className="max-h-40 w-auto rounded-md object-contain"
+                                  />
+                                ) : (
+                                  <>
+                                    <UploadCloud className="w-12 h-12 mx-auto text-muted-foreground" />
+                                    <p className="mt-4 text-sm text-muted-foreground">
+                                      Drag and drop, or click to browse.
+                                    </p>
+                                  </>
+                                )}
+                              </div>
+                              <Input
+                                type="file"
+                                accept="image/*"
+                                className="absolute inset-0 z-10 w-full h-full opacity-0 cursor-pointer"
+                                onChange={handleImageChange}
+                              />
                             </div>
-                            <Input
-                              type="file"
-                              accept="image/*"
-                              className="absolute inset-0 z-10 w-full h-full opacity-0 cursor-pointer"
-                              onChange={handleImageChange}
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                     <FormField
+                      control={form.control}
+                      name="problem"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className='text-lg sr-only'>Optional: Add a description</FormLabel>
+                          <FormControl>
+                            <Textarea
+                              placeholder="Optionally, add more context about the problem in the image."
+                              className="min-h-[150px] resize-none text-base"
+                              {...field}
                             />
-                          </div>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                   <FormField
-                    control={form.control}
-                    name="problem"
-                    render={({ field }) => (
-                      <FormItem className='mt-4'>
-                        <FormLabel>Optional: Add a description</FormLabel>
-                        <FormControl>
-                          <Textarea
-                            placeholder="Optionally, add more context about the problem in the image."
-                            className="min-h-[80px] resize-none text-base"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
                 </TabsContent>
               </Tabs>
               

@@ -1,4 +1,3 @@
-// @/components/koya-ai-tutor/chat-panel.tsx
 'use client';
 
 import { useEffect, useRef } from 'react';
@@ -49,7 +48,7 @@ export function ChatPanel({ messages, isLoading, onSendMessage, problem }: ChatP
   }, [messages]);
 
   return (
-    <Card className="flex h-full flex-col">
+    <Card className="flex h-full flex-col bg-card/80">
       <CardHeader>
         <CardTitle className="font-headline text-xl">
           Current Problem: <span className="font-normal font-body">{problem}</span>
@@ -92,7 +91,7 @@ export function ChatPanel({ messages, isLoading, onSendMessage, problem }: ChatP
                         className="text-base"
                         {...field}
                       />
-                    </FormControl>
+FormControl
                   </FormItem>
                 )}
               />

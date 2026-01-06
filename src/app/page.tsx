@@ -1,5 +1,5 @@
-import { TutorView } from '@/components/koya-ai-tutor/tutor-view';
+import { LandingPage } from '@/components/koya-ai-tutor/landing-page';
 
 export default function Home() {
-  return <TutorView />;
+  return <LandingPage />;
 }
