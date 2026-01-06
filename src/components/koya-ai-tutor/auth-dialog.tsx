@@ -34,6 +34,7 @@ interface AuthDialogProps {
   isLoading: boolean;
 }
 
+// NOTE: This is now a placeholder component as Firebase Auth has been removed.
 export function AuthDialog({ isOpen, onOpenChange, onSubmit, isLoading }: AuthDialogProps) {
   
   const AuthForm = ({ type }: { type: 'signin' | 'signup' }) => {
