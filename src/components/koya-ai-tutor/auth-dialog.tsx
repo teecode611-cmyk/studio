@@ -1,3 +1,4 @@
+'use client';
 // @/components/koya-ai-tutor/auth-dialog.tsx
 import {
   Dialog,

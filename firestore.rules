@@ -127,11 +127,7 @@ service cloud.firestore {
        * @principle Enforces strict data ownership within a user's private subcollection.
        */
       match /sessions/{sessionId} {
-        allow get: if isOwner(userId);
-        allow list: if isOwner(userId);
-        allow create: if isOwner(userId) && isValidSessionCreate(userId);
-        allow update: if isExistingOwner(userId) && isImmutableSessionUpdate();
-        allow delete: if isExistingOwner(userId);
+        allow get, list, create, update, delete: if isOwner(userId);
       }
     }
   }

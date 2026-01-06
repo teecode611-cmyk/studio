@@ -8,10 +8,10 @@ import {
   getHintAction,
   getSummaryAction,
 } from '@/app/actions';
-import type { StartSessionOutput } from '@/ai/flows/start-session';
 import { useAuth, useUser } from '@/firebase';
 import { initiateEmailSignIn, initiateEmailSignUp } from '@/firebase/non-blocking-login';
-import { errorEmitter } from '@/firebase/error-emitter';
+import { doc, onSnapshot, getFirestore } from 'firebase/firestore';
+import { initializeFirebase } from '@/firebase/index';
 
 import { Header } from './header';
 import { ProblemForm, type ProblemSubmitData } from './problem-form';
@@ -32,6 +32,7 @@ export function TutorView() {
   const [sessionState, setSessionState] = useState<SessionState>('idle');
   const [messages, setMessages] = useState<Message[]>([]);
   const [problem, setProblem] = useState('');
+  const [sessionId, setSessionId] = useState<string | null>(null);
   const [stepByStepProgress, setStepByStepProgress] = useState<string | undefined>(undefined);
   const [hints, setHints] = useState<string[]>([]);
   const [summary, setSummary] = useState('');
@@ -64,26 +65,43 @@ export function TutorView() {
     setIsRecapLoading(false);
   }, [toast]);
 
+  // Real-time listener for session updates
+  useEffect(() => {
+    if (!user || !sessionId) return;
+
+    const { firestore } = initializeFirebase();
+    const sessionDocRef = doc(firestore, 'users', user.uid, 'sessions', sessionId);
+
+    const unsubscribe = onSnapshot(sessionDocRef, (doc) => {
+      if (doc.exists()) {
+        const data = doc.data();
+        setMessages(data.messages || []);
+        // You could also sync progress, hints, etc. here if they were stored in the doc
+      }
+    }, (error) => {
+      console.error("Error listening to session updates:", error);
+      handleError("Connection Error", "Could not sync with the session data.");
+    });
+
+    return () => unsubscribe();
+  }, [user, sessionId, handleError]);
+
   const handleStartSession = useCallback(async (data: ProblemSubmitData) => {
+    if (!user) {
+      handleError("Authentication Error", "You must be logged in to start a session.");
+      return;
+    }
+
     setIsLoading(true);
-    setPendingProblem(null); // Clear pending problem
+    setPendingProblem(null);
 
     try {
-      const response: StartSessionOutput = await startSocraticSession(data);
+      const response = await startSocraticSession({ ...data, userId: user.uid });
       
-      const userMessageText = data.imageDataUri 
-        ? data.problem 
-          ? `I've uploaded an image and here's my question: ${data.problem}`
-          : 'I have uploaded an image of my problem.' 
-        : data.problem!;
-
       const problemDescription = data.problem || 'the uploaded image';
       
       setProblem(problemDescription);
-      setMessages([
-        { role: 'user', content: userMessageText },
-        { role: 'assistant', content: response.question },
-      ]);
+      setSessionId(response.sessionId);
       setStepByStepProgress(response.initialProgress);
       setSessionState('active');
     } catch (error) {
@@ -92,9 +110,8 @@ export function TutorView() {
     } finally {
       setIsLoading(false);
     }
-  }, [handleError]);
+  }, [user, handleError]);
   
-  // This is the entry point from the problem form
   const triggerAuthOrStartSession = useCallback((data: ProblemSubmitData) => {
     if (user) {
       handleStartSession(data);
@@ -112,7 +129,6 @@ export function TutorView() {
       } else {
         await initiateEmailSignIn(auth, data.email, data.password);
       }
-      // onAuthStateChanged will handle the rest
     } catch (error) {
       handleError('Authentication Failed', error)
     } finally {
@@ -120,11 +136,9 @@ export function TutorView() {
     }
   }, [auth, handleError]);
 
-  // Effect to listen for auth state changes
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (authUser) => {
       if (authUser && pendingProblem) {
-        // User has logged in and there is a pending session to start
         setIsAuthDialogOpen(false);
         handleStartSession(pendingProblem);
       }
@@ -133,38 +147,42 @@ export function TutorView() {
   }, [auth, pendingProblem, handleStartSession]);
 
   const handleSendMessage = async (response: string) => {
+    if (!user || !sessionId) return;
     setIsLoading(true);
-    const newMessages: Message[] = [...messages, { role: 'user', content: response }];
-    setMessages(newMessages);
+    
+    // Optimistically update UI
+    const optimisticMessages: Message[] = [...messages, { role: 'user', content: response }];
+    setMessages(optimisticMessages);
 
     try {
-      const result = await continueSocraticSession({
+      await continueSocraticSession({
+        userId: user.uid,
+        sessionId,
         problem,
         studentResponse: response,
-        stepByStepProgress,
+        conversationHistory: messages, // Send current history
       });
-      setMessages((prev) => [...prev, { role: 'assistant', content: result.question }]);
-      if (result.updatedStepByStepProgress) {
-        setStepByStepProgress(result.updatedStepByStepProgress);
-      }
+      // The onSnapshot listener will handle the update from the backend
     } catch (error) {
       handleError('Could not get response', error);
-      setMessages(messages); // Revert messages on error
+      setMessages(messages); // Revert on error
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleGetHint = async () => {
+    if (!user || !sessionId) return;
     setIsHintLoading(true);
     try {
-      const result = await getHintAction({
+      await getHintAction({
         question: problem,
         studentAnswer: messages.findLast(m => m.role === 'user')?.content,
         previousHints: hints,
+        userId: user.uid,
+        sessionId,
       });
-      setMessages((prev) => [...prev, { role: 'hint', content: result.hint }]);
-      setHints((prev) => [...prev, result.hint]);
+      // onSnapshot will update the UI
     } catch (error) {
       handleError('Could not get hint', error);
     } finally {
@@ -173,12 +191,17 @@ export function TutorView() {
   };
 
   const handleEndSession = async () => {
+    if (!user || !sessionId) return;
     setIsRecapLoading(true);
     try {
       const dialogue = messages
         .map((m) => `${m.role === 'user' ? 'Student' : 'Tutor'}: ${m.content}`)
         .join('\n');
-      const result = await getSummaryAction(dialogue);
+      const result = await getSummaryAction({
+        dialogue,
+        userId: user.uid,
+        sessionId,
+      });
       setSummary(result.summary);
       setIsRecapOpen(true);
     } catch (error) {
@@ -192,6 +215,7 @@ export function TutorView() {
     setSessionState('idle');
     setMessages([]);
     setProblem('');
+    setSessionId(null);
     setStepByStepProgress(undefined);
     setHints([]);
     setSummary('');
@@ -236,7 +260,7 @@ export function TutorView() {
           if (!open) {
             setIsAuthDialogOpen(false);
             setIsAuthLoading(false);
-            setPendingProblem(null); // Clear pending data if dialog is closed
+            setPendingProblem(null);
           } else {
             setIsAuthDialogOpen(true);
           }

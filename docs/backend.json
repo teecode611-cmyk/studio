@@ -52,7 +52,17 @@
           "type": "array",
           "description": "Array of messages exchanged during the session.",
           "items": {
-            "type": "string"
+            "type": "object",
+            "properties": {
+              "role": {
+                "type": "string",
+                "enum": ["user", "assistant", "hint"]
+              },
+              "content": {
+                "type": "string"
+              }
+            },
+            "required": ["role", "content"]
           }
         },
         "keyLearnings": {
@@ -75,11 +85,7 @@
         "id",
         "userId",
         "timestamp",
-        "topic",
-        "messages",
-        "keyLearnings",
-        "summary",
-        "completed"
+        "topic"
       ]
     }
   },
