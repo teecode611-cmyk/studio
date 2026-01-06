@@ -58,6 +58,7 @@ export function LandingPage() {
                 <h1 className="font-headline text-2xl font-bold tracking-tight text-foreground">
                     Hi! I'm Koya AI Tutor
                 </h1>
+                <p className="text-muted-foreground text-lg">What can I help you understand today?</p>
             </div>
         </div>
 
