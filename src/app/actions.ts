@@ -2,6 +2,7 @@
 
 import {
   socraticQuestioning,
+  SocraticQuestioningInput,
   SocraticQuestioningOutput,
 } from '@/ai/flows/socratic-questioning';
 import { getHint, GetHintInput, GetHintOutput } from '@/ai/flows/progressive-hint-delivery';
@@ -14,14 +15,15 @@ const startSessionSchema = z.object({
   imageDataUri: z.string().optional(),
 }).refine(data => data.problem || data.imageDataUri, {
   message: 'Please either provide a problem description or an image.',
-  path: ['problem'],
+  path: ['problem'], // Assign error to the 'problem' field for the form
 });
 
 export async function startSocraticSession(
-  input: z.infer<typeof startSessionSchema>
+  input: unknown
 ): Promise<StartSessionOutput> {
   const validatedInput = startSessionSchema.safeParse(input);
   if (!validatedInput.success) {
+    // Coerce to an error object to be safe
     throw new Error(validatedInput.error.errors[0].message);
   }
 
@@ -35,30 +37,35 @@ export async function startSocraticSession(
     return response;
   } catch (error) {
     console.error('Error in startSocraticSession:', error);
-    throw new Error('Failed to start a new session. Please try again.');
+    // Throw a generic error to the client
+    throw new Error('Failed to start a new session. The AI model may be unavailable.');
   }
 }
 
 const continueSessionSchema = z.object({
   problem: z.string(),
-  studentResponse: z.string().min(1, 'Response is too short.'),
+  studentResponse: z.string().min(1, 'Response cannot be empty.'),
   stepByStepProgress: z.string().optional(),
 });
 
 export async function continueSocraticSession(
-  input: z.infer<typeof continueSessionSchema>
+  input: unknown
 ): Promise<SocraticQuestioningOutput> {
   const validatedInput = continueSessionSchema.safeParse(input);
   if (!validatedInput.success) {
     throw new Error(validatedInput.error.errors[0].message);
   }
 
+  const socraticInput: SocraticQuestioningInput = {
+    ...validatedInput.data
+  };
+
   try {
-    const response = await socraticQuestioning(validatedInput.data);
+    const response = await socraticQuestioning(socraticInput);
     return response;
   } catch (error) {
     console.error('Error in continueSocraticSession:', error);
-    throw new Error('Failed to get a response. Please try again.');
+    throw new Error('Failed to get a response. The AI model may be unavailable.');
   }
 }
 
@@ -69,7 +76,7 @@ const getHintSchema = z.object({
 });
 
 export async function getHintAction(
-  input: z.infer<typeof getHintSchema>
+  input: unknown
 ): Promise<GetHintOutput> {
   const validatedInput = getHintSchema.safeParse(input);
   if (!validatedInput.success) {
@@ -85,7 +92,7 @@ export async function getHintAction(
     return response;
   } catch (error) {
     console.error('Error in getHintAction:', error);
-    throw new Error('Failed to get a hint. Please try again.');
+    throw new Error('Failed to get a hint. The AI model may be unavailable.');
   }
 }
 
@@ -110,6 +117,6 @@ export async function getSummaryAction(
     return response;
   } catch (error) {
     console.error('Error in getSummaryAction:', error);
-    throw new Error('Failed to generate a summary. Please try again.');
+    throw new Error('Failed to generate a summary. The AI model may be unavailable.');
   }
 }

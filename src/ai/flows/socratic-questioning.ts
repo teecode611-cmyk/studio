@@ -3,7 +3,7 @@
 /**
  * @fileOverview This file implements the Socratic Questioning flow for the AI tutor.
  *
- * The flow guides students towards solutions using the Socratic method.
+ * The flow guides students towards solutions using the Socratic method for all turns after the first one.
  *
  * @interface SocraticQuestioningInput - Defines the input schema for the socraticQuestioning function.
  * @interface SocraticQuestioningOutput - Defines the output schema for the socraticQuestioning function.
@@ -17,7 +17,7 @@ const SocraticQuestioningInputSchema = z.object({
   problem: z
     .string()
     .describe(
-      'The problem or question the student needs help with. This could be text entered by the user, or a description of an uploaded image.'
+      'The original problem or question the student needs help with.'
     ),
   studentResponse: z
     .string()
@@ -25,13 +25,7 @@ const SocraticQuestioningInputSchema = z.object({
   stepByStepProgress: z
     .string()
     .optional()
-    .describe('The step by step progress of the student.'),
-  imageDataUri: z
-    .string()
-    .optional()
-    .describe(
-      "A photo of the problem, as a data URI that must include a MIME type and use Base64 encoding. Expected format: 'data:<mimetype>;base64,<encoded_data>'."
-    ),
+    .describe('The step by step progress of the student so far.'),
 });
 
 export type SocraticQuestioningInput = z.infer<
@@ -44,14 +38,6 @@ const SocraticQuestioningOutputSchema = z.object({
     .describe(
       'A probing question to guide the student towards understanding.'
     ),
-  hint: z
-    .string()
-    .optional()
-    .describe('A hint to assist the student, if they are stuck.'),
-  encouragement: z
-    .string()
-    .optional()
-    .describe('Encouragement to the student.'),
   updatedStepByStepProgress: z
     .string()
     .optional()
@@ -84,13 +70,7 @@ const socraticQuestioningPrompt = ai.definePrompt({
 
   When students get stuck, ask "What do you know so far?" or "What have you tried?" to activate prior knowledge. Validate their effort and thinking process, not just correct answers.
 
-  {{#if imageDataUri}}
-  The user has uploaded an image of their problem. Analyze the image to understand the question.
-  Image: {{media url=imageDataUri}}
-  {{/if}}
-  {{#if problem}}
-  Problem: {{{problem}}}
-  {{/if}}
+  Original Problem: {{{problem}}}
   Student's Current Response: {{{studentResponse}}}
   {{#if stepByStepProgress}}
   Current Progress So Far: {{{stepByStepProgress}}}
@@ -98,10 +78,8 @@ const socraticQuestioningPrompt = ai.definePrompt({
 
   Based on the student's problem and their response:
   1. Formulate a single, probing question to guide them closer to the solution.
-  2. If the student is struggling, provide a concise hint that clarifies a concept without giving away the next step.
-  3. If the student has made progress or had an insight, offer brief, genuine encouragement.
-  4. Update the step-by-step progress based on this turn's interaction.
-  5. If you believe the student has grasped a concept, ask a question to confirm their understanding.
+  2. Update the step-by-step progress based on this turn's interaction.
+  3. If you believe the student has grasped a a concept, ask a question to confirm their understanding.
 `,
 });
 

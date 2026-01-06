@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import {
   startSocraticSession,
@@ -19,6 +19,7 @@ import { ChatPanel } from './chat-panel';
 import { SidebarPanel } from './sidebar-panel';
 import { RecapDialog } from './recap-dialog';
 import { AuthDialog, type AuthSubmitData } from './auth-dialog';
+import { onAuthStateChanged } from 'firebase/auth';
 
 export type Message = {
   role: 'user' | 'assistant' | 'hint';
@@ -31,29 +32,32 @@ export function TutorView() {
   const [sessionState, setSessionState] = useState<SessionState>('idle');
   const [messages, setMessages] = useState<Message[]>([]);
   const [problem, setProblem] = useState('');
-  const [problemData, setProblemData] = useState<ProblemSubmitData | null>(null);
   const [stepByStepProgress, setStepByStepProgress] = useState<string | undefined>(undefined);
   const [hints, setHints] = useState<string[]>([]);
   const [summary, setSummary] = useState('');
   
   const [isLoading, setIsLoading] = useState(false);
-  const [isAuthLoading, setIsAuthLoading] = useState(false);
   const [isHintLoading, setIsHintLoading] = useState(false);
   const [isRecapLoading, setIsRecapLoading] = useState(false);
   const [isRecapOpen, setIsRecapOpen] = useState(false);
-  const [isAuthOpen, setIsAuthOpen] = useState(false);
+
+  // Auth-related state
+  const [isAuthDialogOpen, setIsAuthDialogOpen] = useState(false);
+  const [isAuthLoading, setIsAuthLoading] = useState(false);
+  const [pendingProblem, setPendingProblem] = useState<ProblemSubmitData | null>(null);
 
   const { toast } = useToast();
   const auth = useAuth();
   const { user, isUserLoading } = useUser();
 
-  const handleError = useCallback((error: unknown, defaultMessage: string) => {
-    const message = error instanceof Error ? error.message : defaultMessage;
+  const handleError = useCallback((title: string, error: unknown) => {
+    const message = error instanceof Error ? error.message : 'An unexpected error occurred.';
     toast({
       variant: 'destructive',
-      title: 'An error occurred',
+      title,
       description: message,
     });
+    // Reset all loading states
     setIsLoading(false);
     setIsAuthLoading(false);
     setIsHintLoading(false);
@@ -62,7 +66,8 @@ export function TutorView() {
 
   const handleStartSession = useCallback(async (data: ProblemSubmitData) => {
     setIsLoading(true);
-    setProblemData(null); // Clear pending problem data
+    setPendingProblem(null); // Clear pending problem
+
     try {
       const response: StartSessionOutput = await startSocraticSession(data);
       
@@ -79,60 +84,59 @@ export function TutorView() {
         { role: 'user', content: userMessageText },
         { role: 'assistant', content: response.question },
       ]);
-      setStepByStepProgress(response.updatedStepByStepProgress);
+      setStepByStepProgress(response.initialProgress);
       setSessionState('active');
     } catch (error) {
-      handleError(error, 'Could not start the session.');
-      setSessionState('idle'); // If starting fails, go back to idle
+      handleError('Could not start session', error);
+      setSessionState('idle');
     } finally {
       setIsLoading(false);
     }
   }, [handleError]);
   
-  useEffect(() => {
-    const handleAuthError = (error: Error) => {
-      handleError(error, 'Authentication failed.');
-    };
-    
-    errorEmitter.on('auth-error', handleAuthError);
-
-    return () => {
-      errorEmitter.off('auth-error', handleAuthError);
-    };
-  }, [handleError]);
-  
-  // This effect runs when the user successfully logs in and there's a pending problem to submit.
-  useEffect(() => {
-    if (user && problemData && sessionState === 'idle') {
-      setIsAuthOpen(false);
-      setIsAuthLoading(false);
-      handleStartSession(problemData);
-    }
-  }, [user, problemData, sessionState, handleStartSession]);
-
-
-  const triggerAuthOrStartSession = (data: ProblemSubmitData) => {
-    if (!user) {
-      setProblemData(data); // Save the problem data
-      setIsAuthOpen(true);   // Open the auth modal
+  // This is the entry point from the problem form
+  const triggerAuthOrStartSession = useCallback((data: ProblemSubmitData) => {
+    if (user) {
+      handleStartSession(data);
     } else {
-      handleStartSession(data); // If user is already logged in, start session
+      setPendingProblem(data);
+      setIsAuthDialogOpen(true);
     }
-  };
+  }, [user, handleStartSession]);
   
-  const handleAuthSubmit = (data: AuthSubmitData) => {
+  const handleAuthSubmit = useCallback(async (data: AuthSubmitData) => {
     setIsAuthLoading(true);
-    if (data.type === 'signup') {
-      initiateEmailSignUp(auth, data.email, data.password);
-    } else {
-      initiateEmailSignIn(auth, data.email, data.password);
+    try {
+      if (data.type === 'signup') {
+        await initiateEmailSignUp(auth, data.email, data.password);
+      } else {
+        await initiateEmailSignIn(auth, data.email, data.password);
+      }
+      // onAuthStateChanged will handle the rest
+    } catch (error) {
+      handleError('Authentication Failed', error)
+    } finally {
+      setIsAuthLoading(false);
     }
-    // The useEffect hook will handle starting the session upon successful login
-  };
+  }, [auth, handleError]);
+
+  // Effect to listen for auth state changes
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (authUser) => {
+      if (authUser && pendingProblem) {
+        // User has logged in and there is a pending session to start
+        setIsAuthDialogOpen(false);
+        handleStartSession(pendingProblem);
+      }
+    });
+    return () => unsubscribe();
+  }, [auth, pendingProblem, handleStartSession]);
 
   const handleSendMessage = async (response: string) => {
     setIsLoading(true);
-    setMessages((prev) => [...prev, { role: 'user', content: response }]);
+    const newMessages: Message[] = [...messages, { role: 'user', content: response }];
+    setMessages(newMessages);
+
     try {
       const result = await continueSocraticSession({
         problem,
@@ -144,8 +148,8 @@ export function TutorView() {
         setStepByStepProgress(result.updatedStepByStepProgress);
       }
     } catch (error) {
-      handleError(error, 'Could not get a response.');
-      setMessages((prev) => prev.slice(0, -1));
+      handleError('Could not get response', error);
+      setMessages(messages); // Revert messages on error
     } finally {
       setIsLoading(false);
     }
@@ -156,14 +160,13 @@ export function TutorView() {
     try {
       const result = await getHintAction({
         question: problem,
-        studentAnswer: messages.filter(m => m.role === 'user').pop()?.content,
+        studentAnswer: messages.findLast(m => m.role === 'user')?.content,
         previousHints: hints,
       });
       setMessages((prev) => [...prev, { role: 'hint', content: result.hint }]);
       setHints((prev) => [...prev, result.hint]);
-    } catch (error)
-      {
-      handleError(error, 'Could not retrieve a hint.');
+    } catch (error) {
+      handleError('Could not get hint', error);
     } finally {
       setIsHintLoading(false);
     }
@@ -175,11 +178,11 @@ export function TutorView() {
       const dialogue = messages
         .map((m) => `${m.role === 'user' ? 'Student' : 'Tutor'}: ${m.content}`)
         .join('\n');
-      const result = await getSummaryAction( dialogue );
+      const result = await getSummaryAction(dialogue);
       setSummary(result.summary);
       setIsRecapOpen(true);
     } catch (error) {
-      handleError(error, 'Could not generate a session recap.');
+      handleError('Could not generate recap', error);
     } finally {
       setIsRecapLoading(false);
     }
@@ -193,7 +196,7 @@ export function TutorView() {
     setHints([]);
     setSummary('');
     setIsRecapOpen(false);
-    setProblemData(null);
+    setPendingProblem(null);
   };
 
   return (
@@ -228,14 +231,14 @@ export function TutorView() {
       </main>
       <RecapDialog isOpen={isRecapOpen} onOpenChange={resetSession} summary={summary} />
       <AuthDialog 
-        isOpen={isAuthOpen}
+        isOpen={isAuthDialogOpen}
         onOpenChange={(open) => {
           if (!open) {
-            setIsAuthOpen(false);
+            setIsAuthDialogOpen(false);
             setIsAuthLoading(false);
-            setProblemData(null); // Clear pending data if dialog is closed
+            setPendingProblem(null); // Clear pending data if dialog is closed
           } else {
-            setIsAuthOpen(true);
+            setIsAuthDialogOpen(true);
           }
         }}
         onSubmit={handleAuthSubmit}

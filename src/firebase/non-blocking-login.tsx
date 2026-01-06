@@ -6,7 +6,6 @@ import {
   signInWithEmailAndPassword,
 } from 'firebase/auth';
 import { FirebaseError } from 'firebase/app';
-import { errorEmitter } from './error-emitter';
 
 /** Initiate anonymous sign-in (non-blocking). */
 export function initiateAnonymousSignIn(authInstance: Auth): void {
@@ -17,40 +16,34 @@ export function initiateAnonymousSignIn(authInstance: Auth): void {
 }
 
 /** Initiate email/password sign-up (non-blocking). */
-export function initiateEmailSignUp(authInstance: Auth, email: string, password: string): void {
-  createUserWithEmailAndPassword(authInstance, email, password)
-    .catch(error => {
-      // Firebase auth errors have a 'code' property.
+export async function initiateEmailSignUp(authInstance: Auth, email: string, password: string): Promise<void> {
+  try {
+    await createUserWithEmailAndPassword(authInstance, email, password);
+  } catch (error) {
       if (error instanceof FirebaseError && error.code === 'auth/email-already-in-use') {
-        const customError = new Error('This email address is already in use. Please sign in or use a different email.');
-        errorEmitter.emit('auth-error', customError);
+        throw new Error('This email address is already in use. Please sign in or use a different email.');
       } else {
-        const genericError = new Error('Could not create an account. Please try again.');
-        errorEmitter.emit('auth-error', genericError);
+        throw new Error('Could not create an account. Please try again.');
       }
-    });
+  }
 }
 
 /** Initiate email/password sign-in (non-blocking). */
-export function initiateEmailSignIn(authInstance: Auth, email: string, password: string): void {
-  signInWithEmailAndPassword(authInstance, email, password)
-    .catch(error => {
-       if (error instanceof FirebaseError) {
-         let customError;
-         switch(error.code) {
-           case 'auth/user-not-found':
-           case 'auth/wrong-password':
-           case 'auth/invalid-credential':
-             customError = new Error('Invalid email or password. Please try again.');
-             break;
-           default:
-             customError = new Error('Could not sign in. Please try again.');
-             break;
-         }
-         errorEmitter.emit('auth-error', customError);
-       } else {
-        const genericError = new Error('An unexpected error occurred during sign-in.');
-        errorEmitter.emit('auth-error', genericError);
+export async function initiateEmailSignIn(authInstance: Auth, email: string, password: string): Promise<void> {
+  try {
+    await signInWithEmailAndPassword(authInstance, email, password);
+  } catch (error) {
+     if (error instanceof FirebaseError) {
+       switch(error.code) {
+         case 'auth/user-not-found':
+         case 'auth/wrong-password':
+         case 'auth/invalid-credential':
+           throw new Error('Invalid email or password. Please try again.');
+         default:
+           throw new Error('Could not sign in. Please try again.');
        }
-    });
+     } else {
+      throw new Error('An unexpected error occurred during sign-in.');
+     }
+  }
 }
