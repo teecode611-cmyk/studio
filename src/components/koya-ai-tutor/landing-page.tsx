@@ -4,6 +4,7 @@ import { useState }from 'react';
 import { Button } from '@/components/ui/button';
 import { ProblemForm } from './problem-form';
 import { useRouter } from 'next/navigation';
+import { Keyboard } from 'lucide-react';
 
 const KoyaLogo = () => (
     <svg width="128" height="45" viewBox="0 0 200 70" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -69,6 +70,7 @@ export function LandingPage() {
                 onClick={() => handleStart('text')}
                 className="w-full max-w-sm text-lg"
             >
+                <Keyboard className="h-5 w-5 text-accent" />
                 Type Question
             </Button>
             <Button
