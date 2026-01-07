@@ -34,7 +34,7 @@ export function UploadOptionsPage({ onBack, onSelectUpload }: UploadOptionsPageP
             className="h-auto w-full flex-col gap-3 rounded-2xl bg-primary py-8 text-primary-foreground shadow-lg hover:bg-primary/90"
           >
             <Camera className="h-12 w-12 text-accent" />
-            <span className="text-xl font-bold">Upload Photo</span>
+            <span className="text-xl font-bold">Take Photo</span>
           </Button>
 
           <Button
