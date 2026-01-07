@@ -25,7 +25,7 @@ export function UploadOptionsPage({ onBack, onSelectUpload }: UploadOptionsPageP
           Koya AI Tutor
         </h1>
         <h2 className="mt-1 font-headline text-2xl text-foreground">
-          Upload Options
+          What can I help you understand today?
         </h2>
 
         <div className="mt-8 space-y-4">
