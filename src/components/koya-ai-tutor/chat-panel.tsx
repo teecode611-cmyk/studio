@@ -96,7 +96,7 @@ export function ChatPanel({
                       placeholder="Send a message..."
                       autoComplete="off"
                       disabled={isLoading}
-                      className="text-base rounded-full px-6 h-12"
+                      className="text-base rounded-full px-6 h-12 border-2 border-primary focus-visible:ring-primary"
                       {...field}
                     />
                   </FormControl>
