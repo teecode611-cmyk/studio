@@ -20,7 +20,7 @@ export function ChatMessage({ message }: ChatMessageProps) {
   const messageStyles = cn(
     'max-w-md rounded-2xl p-4 whitespace-pre-wrap shadow-sm',
     isUser
-      ? 'rounded-br-none bg-card text-card-foreground border'
+      ? 'rounded-br-none bg-accent/90 text-accent-foreground border border-accent'
       : 'rounded-bl-none',
     isHint
       ? 'border-yellow-300 bg-yellow-50 text-foreground'
