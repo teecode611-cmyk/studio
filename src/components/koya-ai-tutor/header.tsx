@@ -1,5 +1,6 @@
 'use client';
 import { Button } from '@/components/ui/button';
+import { User } from 'lucide-react';
 
 const KoyaLogoHeader = () => (
   <svg
@@ -32,8 +33,9 @@ export function Header({ onLogoClick }: HeaderProps) {
         <button onClick={onLogoClick} className="flex items-center gap-3">
           <KoyaLogoHeader />
         </button>
-        <Button variant="link" className="font-headline text-lg font-bold text-accent hover:text-accent/80">
-          Log In
+        <Button variant="ghost" size="icon">
+            <User className="h-6 w-6 text-accent" />
+            <span className="sr-only">Account</span>
         </Button>
       </div>
     </header>
