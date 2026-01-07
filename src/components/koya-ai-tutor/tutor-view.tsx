@@ -100,10 +100,9 @@ export function TutorView() {
     // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 1000));
     try {
-      const firstMessage = data.imageDataUri ? `I've uploaded an image. Here's my question: ${data.problem}` : data.problem;
+      const firstMessage = { role: 'assistant', content: "Hello! How can I assist you today?" };
       setMessages([
-        { role: 'user', content: firstMessage },
-        { role: 'assistant', content: "This is an interesting problem. What have you tried so far?" }
+        firstMessage,
       ]);
       setProgress("1. Understand the problem.\n2. Devise a plan.");
       setViewState('tutor_session');
