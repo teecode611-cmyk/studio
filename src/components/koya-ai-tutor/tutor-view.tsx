@@ -18,6 +18,7 @@ import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { PanelLeft } from 'lucide-react';
 import { SubscriptionPlan } from './subscription-plan';
 import { PaymentPage } from './payment-page';
+import { AccountPage } from './account-page';
 
 
 export type Message = {
@@ -25,7 +26,7 @@ export type Message = {
   content: string;
 };
 
-type ViewState = 'landing' | 'problem_form_text' | 'problem_form_upload' | 'upload_options' | 'tutor_session' | 'subscription_plan' | 'payment_page';
+type ViewState = 'landing' | 'problem_form_text' | 'problem_form_upload' | 'upload_options' | 'tutor_session' | 'subscription_plan' | 'payment_page' | 'account';
 
 export function TutorView() {
   const [viewState, setViewState] = useState<ViewState>('landing');
@@ -33,6 +34,7 @@ export function TutorView() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [problem, setProblem] = useState('');
   const [summary, setSummary] = useState('');
+  const [pastSummaries, setPastSummaries] = useState<string[]>([]);
   const [progress, setProgress] = useState('');
   const [selectedPlan, setSelectedPlan] = useState('');
   
@@ -78,6 +80,10 @@ export function TutorView() {
     setViewState('landing');
   }
 
+  const handleGoToAccount = () => {
+    setViewState('account');
+  }
+
   const handleBackToPlans = () => {
     setViewState('subscription_plan');
   }
@@ -118,6 +124,11 @@ export function TutorView() {
       setViewState('payment_page');
     }
   };
+
+  const handleChangePlan = () => {
+    setPendingProblemData(null);
+    setViewState('subscription_plan');
+  }
 
   const handlePaymentSubmit = async () => {
     setIsLoading(true);
@@ -194,7 +205,9 @@ export function TutorView() {
      // Simulate API call
      await new Promise(resolve => setTimeout(resolve, 1000));
     try {
-      setSummary("- You learned how to start a new session.\n- You practiced sending messages.");
+      const newSummary = "- You learned how to start a new session.\n- You practiced sending messages.";
+      setSummary(newSummary);
+      setPastSummaries(prev => [...prev, newSummary]);
       setIsRecapOpen(true);
     } catch (error) {
       handleError('Could not generate recap', error);
@@ -235,10 +248,12 @@ export function TutorView() {
         return <SubscriptionPlan onPlanSelected={handlePlanSelected} />;
       case 'payment_page':
         return <PaymentPage plan={selectedPlan} onBack={handleBackToPlans} onSubmit={handlePaymentSubmit} isLoading={isLoading} />;
+      case 'account':
+        return <AccountPage onBack={handleBackToHome} summaries={pastSummaries} onChangePlan={handleChangePlan} />;
       case 'tutor_session':
         return (
           <>
-            <Header onLogoClick={handleBackToHome} />
+            <Header onLogoClick={handleBackToHome} onAccountClick={handleGoToAccount}/>
             <main className="flex-1">
               <div className="container mx-auto p-4 lg:p-6 h-[calc(100vh-4rem-1px)]">
                 <div className="grid h-full lg:grid-cols-3 gap-6">

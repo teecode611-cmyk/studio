@@ -24,16 +24,17 @@ const KoyaLogoHeader = () => (
 
 interface HeaderProps {
   onLogoClick: () => void;
+  onAccountClick: () => void;
 }
 
-export function Header({ onLogoClick }: HeaderProps) {
+export function Header({ onLogoClick, onAccountClick }: HeaderProps) {
   return (
     <header className="border-b bg-card/80 backdrop-blur-sm sticky top-0 z-10">
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
         <button onClick={onLogoClick} className="flex items-center gap-3">
           <KoyaLogoHeader />
         </button>
-        <Button variant="ghost" size="icon">
+        <Button variant="ghost" size="icon" onClick={onAccountClick}>
             <User className="h-6 w-6 text-accent" />
             <span className="sr-only">Account</span>
         </Button>
