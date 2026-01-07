@@ -16,7 +16,18 @@ export function ChatMessage({ message }: ChatMessageProps) {
   const Icon = isUser ? UserCircle : isHint ? Lightbulb : Bot;
   const avatarBg = isUser ? 'bg-transparent' : isHint ? 'bg-yellow-400/20' : 'bg-primary';
   const avatarText = isUser ? 'text-accent' : isHint ? 'text-yellow-500' : 'text-primary-foreground';
-  const messageBg = isHint ? 'border-yellow-300 bg-yellow-50' : 'bg-card';
+  
+  const messageStyles = cn(
+    'max-w-md rounded-2xl p-4 whitespace-pre-wrap shadow-sm',
+    isUser
+      ? 'rounded-br-none bg-card text-card-foreground border'
+      : 'rounded-bl-none',
+    isHint
+      ? 'border-yellow-300 bg-yellow-50 text-foreground'
+      : 'bg-primary text-primary-foreground',
+    !isUser && !isHint && 'bg-primary text-primary-foreground'
+  );
+
 
   return (
     <div
@@ -33,14 +44,7 @@ export function ChatMessage({ message }: ChatMessageProps) {
         </Avatar>
       )}
 
-      <div
-        className={cn(
-          'max-w-md rounded-2xl p-4 whitespace-pre-wrap shadow-sm',
-          isUser
-            ? 'rounded-br-none bg-card text-card-foreground border'
-            : cn('rounded-bl-none bg-primary text-primary-foreground', messageBg),
-        )}
-      >
+      <div className={messageStyles}>
         <p className="text-base">{content}</p>
       </div>
 
