@@ -8,25 +8,32 @@ const KoyaLogo = () => (
         <svg
             width="80"
             height="80"
-            viewBox="0 0 80 80"
+            viewBox="0 0 64 64"
             fill="none"
             xmlns="http://www.w3.org/2000/svg"
         >
-            <circle cx="40" cy="40" r="40" fill="#355E3B" />
+            <circle cx="32" cy="32" r="32" fill="#355E3B" />
             <path
-            d="M27 52.5V27.5H32.75V41.75L42.75 27.5H48.5L37.75 40L49 52.5H43.25L34.25 42.5L32.75 44V52.5H27Z"
-            fill="#FDFCEC"
+                d="M47.25,32.26a15.25,15.25,0,0,1-30.5,0"
+                fill="none"
+                stroke="#FDFCEC"
+                strokeWidth="5"
+                strokeLinecap="round"
             />
             <path
-            d="M40 21.25C41.3807 21.25 42.5 20.1307 42.5 18.75C42.5 17.3693 41.3807 16.25 40 16.25C38.6193 16.25 37.5 17.3693 37.5 18.75C37.5 20.1307 38.6193 21.25 40 21.25Z"
-            fill="#D4AF37"
+                d="M32,17a15.25,15.25,0,0,1,0,30.5"
+                fill="none"
+                stroke="#FDFCEC"
+                strokeWidth="5"
+                strokeLinecap="round"
             />
+            <circle cx="32" cy="32" r="7.5" fill="#D4AF37" />
         </svg>
     </div>
 );
 
 interface LandingPageProps {
-  onStartProblem: (mode: 'text' | 'upload') => void;
+  onStartProblem: () => void;
   onStartUpload: () => void;
 }
 
@@ -60,7 +67,7 @@ export function LandingPage({ onStartProblem, onStartUpload }: LandingPageProps)
         <div className="flex flex-col items-center gap-3 pb-8">
             <Button
                 size="lg"
-                onClick={() => onStartProblem('text')}
+                onClick={() => onStartProblem()}
                 className="w-full max-w-sm text-lg"
             >
                 <Keyboard className="h-5 w-5 text-accent" />

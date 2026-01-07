@@ -16,11 +16,10 @@ export type Message = {
   content: string;
 };
 
-type ViewState = 'landing' | 'problem_form' | 'upload_options' | 'tutor_session';
+type ViewState = 'landing' | 'problem_form_text' | 'problem_form_upload' | 'upload_options' | 'tutor_session';
 
 export function TutorView() {
   const [viewState, setViewState] = useState<ViewState>('landing');
-  const [problemFormMode, setProblemFormMode] = useState<'text' | 'upload'>('text');
   
   const [messages, setMessages] = useState<Message[]>([]);
   const [problem, setProblem] = useState('');
@@ -47,9 +46,12 @@ export function TutorView() {
     setIsRecapLoading(false);
   }, [toast]);
 
-  const handleStartProblem = (mode: 'text' | 'upload') => {
-    setProblemFormMode(mode);
-    setViewState('problem_form');
+  const handleStartProblemText = () => {
+    setViewState('problem_form_text');
+  }
+
+  const handleStartProblemUpload = () => {
+    setViewState('problem_form_upload');
   }
 
   const handleStartUpload = () => {
@@ -141,11 +143,11 @@ export function TutorView() {
   const renderContent = () => {
     switch (viewState) {
       case 'landing':
-        return <LandingPage onStartProblem={handleStartProblem} onStartUpload={handleStartUpload} />;
-      case 'problem_form':
-        return <ProblemForm defaultMode={problemFormMode} onBack={handleBackToHome} onSubmit={handleStartSession} isLoading={isLoading} />;
+        return <LandingPage onStartProblem={handleStartProblemText} onStartUpload={handleStartUpload} />;
+      case 'problem_form_text':
+        return <ProblemForm onBack={handleBackToHome} onSubmit={handleStartSession} isLoading={isLoading} />;
       case 'upload_options':
-        return <UploadOptionsPage onBack={handleBackToHome} onSelectUpload={() => handleStartProblem('upload')} />;
+        return <UploadOptionsPage onBack={handleBackToHome} onSelectUpload={handleStartProblemUpload} />;
       case 'tutor_session':
         return (
           <>
@@ -176,6 +178,8 @@ export function TutorView() {
             <RecapDialog isOpen={isRecapOpen} onOpenChange={resetSession} summary={summary} />
           </>
         )
+      default:
+        return <LandingPage onStartProblem={handleStartProblemText} onStartUpload={handleStartUpload} />;
     }
   }
 
