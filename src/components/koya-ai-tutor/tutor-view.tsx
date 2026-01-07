@@ -16,13 +16,15 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { PanelLeft } from 'lucide-react';
+import { SubscriptionPlan } from './subscription-plan';
+
 
 export type Message = {
   role: 'user' | 'assistant' | 'hint';
   content: string;
 };
 
-type ViewState = 'landing' | 'problem_form_text' | 'problem_form_upload' | 'upload_options' | 'tutor_session';
+type ViewState = 'landing' | 'problem_form_text' | 'problem_form_upload' | 'upload_options' | 'tutor_session' | 'subscription_plan';
 
 export function TutorView() {
   const [viewState, setViewState] = useState<ViewState>('landing');
@@ -40,6 +42,7 @@ export function TutorView() {
   const [authLoading, setAuthLoading] = useState(false);
 
   const [pendingProblemData, setPendingProblemData] = useState<ProblemSubmitData | null>(null);
+  const [isNewUser, setIsNewUser] = useState(false);
 
   const { toast } = useToast();
   const isMobile = useIsMobile();
@@ -86,16 +89,26 @@ export function TutorView() {
     try {
         console.log('Auth successful for', data.email);
         setIsAuthOpen(false);
-        if (pendingProblemData) {
+
+        if (data.type === 'signup') {
+            setIsNewUser(true);
+            setViewState('subscription_plan');
+        } else if (pendingProblemData) {
             await handleStartSession(pendingProblemData);
         }
     } catch (error) {
         handleError('Authentication Failed', error);
     } finally {
         setAuthLoading(false);
-        setPendingProblemData(null);
     }
   }
+
+  const handlePlanSelected = async (plan: string) => {
+    console.log(`Plan selected: ${plan}`);
+    if (pendingProblemData) {
+      await handleStartSession(pendingProblemData);
+    }
+  };
 
   const handleStartSession = useCallback(async (data: ProblemSubmitData) => {
     setIsLoading(true);
@@ -116,6 +129,8 @@ export function TutorView() {
       setViewState('landing');
     } finally {
       setIsLoading(false);
+      setPendingProblemData(null);
+      setIsNewUser(false);
     }
   }, [handleError]);
   
@@ -193,6 +208,8 @@ export function TutorView() {
         return <ProblemUploadForm onBack={handleBackToHome} onSubmit={handleTriggerAuth} isLoading={isLoading} />;
       case 'upload_options':
         return <UploadOptionsPage onBack={handleBackToHome} onSelectUpload={handleStartProblemUpload} />;
+      case 'subscription_plan':
+        return <SubscriptionPlan onPlanSelected={handlePlanSelected} />;
       case 'tutor_session':
         return (
           <>
