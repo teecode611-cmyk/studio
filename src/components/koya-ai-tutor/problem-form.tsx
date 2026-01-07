@@ -51,7 +51,7 @@ export function ProblemForm({ onSubmit, isLoading, onBack }: ProblemFormProps) {
         </Button>
       <Card className="w-full max-w-2xl shadow-lg bg-card/80">
         <CardHeader>
-          <CardTitle className="font-headline text-3xl">What's the problem?</CardTitle>
+          <CardTitle className="font-headline text-3xl">What can I help you understand today?</CardTitle>
           <CardDescription>
             Enter a problem or question you need help with. Your AI tutor will guide you to the solution without giving away the answer.
           </CardDescription>
