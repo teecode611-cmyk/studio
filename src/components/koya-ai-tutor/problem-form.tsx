@@ -68,7 +68,7 @@ export function ProblemForm({ onSubmit, isLoading, onBack }: ProblemFormProps) {
                     <FormControl>
                       <Textarea
                         placeholder="For example: 'How do I prove that the sum of angles in a triangle is 180 degrees?'"
-                        className="min-h-[150px] resize-none text-base"
+                        className="min-h-[150px] resize-none text-base border-accent border-2 focus-visible:ring-accent"
                         {...field}
                       />
                     </FormControl>
