@@ -50,8 +50,9 @@ export function UploadOptionsPage({ onBack, onSelectUpload }: UploadOptionsPageP
             size="lg"
             variant="secondary"
             className="mt-8 w-full text-lg"
+            onClick={onSelectUpload}
         >
-            Submit
+            Start Learning Session
         </Button>
       </div>
     </div>
