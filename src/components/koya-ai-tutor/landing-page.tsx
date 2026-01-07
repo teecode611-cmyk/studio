@@ -1,9 +1,6 @@
 'use client';
 
-import { useState }from 'react';
 import { Button } from '@/components/ui/button';
-import { ProblemForm } from './problem-form';
-import { useRouter } from 'next/navigation';
 import { Keyboard, Camera } from 'lucide-react';
 
 const KoyaLogo = () => (
@@ -11,47 +8,30 @@ const KoyaLogo = () => (
         <svg
             width="80"
             height="80"
-            viewBox="0 0 64 64"
+            viewBox="0 0 80 80"
             fill="none"
             xmlns="http://www.w3.org/2000/svg"
         >
-            <circle cx="32" cy="32" r="32" fill="#355E3B" />
+            <circle cx="40" cy="40" r="40" fill="#355E3B" />
             <path
-            d="M23.6 44V23.2H28.4V34.8L36.8 23.2H41.6L32.4 33.2L42 44H37.2L29.6 35.6L28.4 36.8V44H23.6Z"
+            d="M27 52.5V27.5H32.75V41.75L42.75 27.5H48.5L37.75 40L49 52.5H43.25L34.25 42.5L32.75 44V52.5H27Z"
             fill="#FDFCEC"
             />
             <path
-            d="M32 18C33.1046 18 34 17.1046 34 16C34 14.8954 33.1046 14 32 14C30.8954 14 30 14.8954 30 16C30 17.1046 30.8954 18 32 18Z"
+            d="M40 21.25C41.3807 21.25 42.5 20.1307 42.5 18.75C42.5 17.3693 41.3807 16.25 40 16.25C38.6193 16.25 37.5 17.3693 37.5 18.75C37.5 20.1307 38.6193 21.25 40 21.25Z"
             fill="#D4AF37"
             />
         </svg>
     </div>
 );
 
+interface LandingPageProps {
+  onStartProblem: (mode: 'text' | 'upload') => void;
+  onStartUpload: () => void;
+}
 
-export function LandingPage() {
-  const [showProblemForm, setShowProblemForm] = useState(false);
-  const [formMode, setFormMode] = useState<'text' | 'upload'>('text');
-  const router = useRouter();
 
-  const handleStart = (mode: 'text' | 'upload') => {
-    setFormMode(mode);
-    setShowProblemForm(true);
-  };
-  
-  const handleBack = () => {
-    setShowProblemForm(false);
-  };
-
-  const handleSessionStart = (data: {problem: string, imageDataUri?: string}) => {
-    console.log("Starting session with:", data);
-    // This is where we would transition to the tutor view
-    // For now, we just log the data
-  }
-
-  if (showProblemForm) {
-    return <ProblemForm defaultMode={formMode} onBack={handleBack} onSubmit={handleSessionStart} isLoading={false} />;
-  }
+export function LandingPage({ onStartProblem, onStartUpload }: LandingPageProps) {
 
   return (
     <div className="relative flex h-screen w-full flex-col overflow-hidden bg-[#FDFCEC]">
@@ -80,7 +60,7 @@ export function LandingPage() {
         <div className="flex flex-col items-center gap-3 pb-8">
             <Button
                 size="lg"
-                onClick={() => handleStart('text')}
+                onClick={() => onStartProblem('text')}
                 className="w-full max-w-sm text-lg"
             >
                 <Keyboard className="h-5 w-5 text-accent" />
@@ -89,7 +69,7 @@ export function LandingPage() {
             <Button
                 size="lg"
                 variant="outline"
-                onClick={() => handleStart('upload')}
+                onClick={onStartUpload}
                 className="w-full max-w-sm text-lg"
             >
                 <Camera className="h-5 w-5 text-accent" />

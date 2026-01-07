@@ -91,7 +91,7 @@ export function ChatPanel({ messages, isLoading, onSendMessage, problem }: ChatP
                         className="text-base"
                         {...field}
                       />
-FormControl
+                    </FormControl>
                   </FormItem>
                 )}
               />

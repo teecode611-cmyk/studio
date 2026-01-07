@@ -8,16 +8,20 @@ import { ChatPanel } from './chat-panel';
 import { SidebarPanel } from './sidebar-panel';
 import { RecapDialog } from './recap-dialog';
 import { LandingPage } from './landing-page';
+import { ProblemForm, type ProblemSubmitData } from './problem-form';
+import { UploadOptionsPage } from './upload-options-page';
 
 export type Message = {
   role: 'user' | 'assistant' | 'hint';
   content: string;
 };
 
-type SessionState = 'idle' | 'active';
+type ViewState = 'landing' | 'problem_form' | 'upload_options' | 'tutor_session';
 
 export function TutorView() {
-  const [sessionState, setSessionState] = useState<SessionState>('idle');
+  const [viewState, setViewState] = useState<ViewState>('landing');
+  const [problemFormMode, setProblemFormMode] = useState<'text' | 'upload'>('text');
+  
   const [messages, setMessages] = useState<Message[]>([]);
   const [problem, setProblem] = useState('');
   const [summary, setSummary] = useState('');
@@ -43,8 +47,20 @@ export function TutorView() {
     setIsRecapLoading(false);
   }, [toast]);
 
+  const handleStartProblem = (mode: 'text' | 'upload') => {
+    setProblemFormMode(mode);
+    setViewState('problem_form');
+  }
 
-  const handleStartSession = useCallback(async (data: {problem: string, imageDataUri?: string}) => {
+  const handleStartUpload = () => {
+    setViewState('upload_options');
+  }
+
+  const handleBackToHome = () => {
+    setViewState('landing');
+  }
+
+  const handleStartSession = useCallback(async (data: ProblemSubmitData) => {
     setIsLoading(true);
     setMessages([]);
     setProblem(data.problem || 'Image based problem');
@@ -58,10 +74,10 @@ export function TutorView() {
         { role: 'assistant', content: "This is an interesting problem. What have you tried so far?" }
       ]);
       setProgress("1. Understand the problem.\n2. Devise a plan.");
-      setSessionState('active');
+      setViewState('tutor_session');
     } catch (error) {
       handleError('Could not start session', error);
-      setSessionState('idle');
+      setViewState('landing');
     } finally {
       setIsLoading(false);
     }
@@ -114,51 +130,58 @@ export function TutorView() {
   };
 
   const resetSession = () => {
-    setSessionState('idle');
     setMessages([]);
     setProblem('');
     setSummary('');
     setProgress('');
     setIsRecapOpen(false);
+    setViewState('landing');
   };
   
-  const handleBackToHome = () => {
-    resetSession();
+  const renderContent = () => {
+    switch (viewState) {
+      case 'landing':
+        return <LandingPage onStartProblem={handleStartProblem} onStartUpload={handleStartUpload} />;
+      case 'problem_form':
+        return <ProblemForm defaultMode={problemFormMode} onBack={handleBackToHome} onSubmit={handleStartSession} isLoading={isLoading} />;
+      case 'upload_options':
+        return <UploadOptionsPage onBack={handleBackToHome} onSelectUpload={() => handleStartProblem('upload')} />;
+      case 'tutor_session':
+        return (
+          <>
+            <Header onLogoClick={handleBackToHome} />
+            <main className="flex-1">
+              <div className="container mx-auto p-4 lg:p-6 h-[calc(100vh-4rem-1px)]">
+                <div className="grid h-full lg:grid-cols-3 gap-6">
+                  <div className="lg:col-span-2 h-full">
+                    <ChatPanel
+                      messages={messages}
+                      isLoading={isLoading}
+                      onSendMessage={handleSendMessage}
+                      problem={problem}
+                    />
+                  </div>
+                  <div className="hidden lg:block">
+                    <SidebarPanel
+                      progress={progress}
+                      onGetHint={handleGetHint}
+                      onEndSession={handleEndSession}
+                      isHintLoading={isHintLoading}
+                      isRecapLoading={isRecapLoading}
+                    />
+                  </div>
+                </div>
+              </div>
+            </main>
+            <RecapDialog isOpen={isRecapOpen} onOpenChange={resetSession} summary={summary} />
+          </>
+        )
+    }
   }
 
   return (
     <div className="flex min-h-screen flex-col bg-[#FDFCEC]">
-      {sessionState === 'idle' ? (
-        <LandingPage />
-      ) : (
-        <>
-          <Header onLogoClick={handleBackToHome} />
-          <main className="flex-1">
-            <div className="container mx-auto p-4 lg:p-6 h-[calc(100vh-4rem-1px)]">
-              <div className="grid h-full lg:grid-cols-3 gap-6">
-                <div className="lg:col-span-2 h-full">
-                  <ChatPanel
-                    messages={messages}
-                    isLoading={isLoading}
-                    onSendMessage={handleSendMessage}
-                    problem={problem}
-                  />
-                </div>
-                <div className="hidden lg:block">
-                  <SidebarPanel
-                    progress={progress}
-                    onGetHint={handleGetHint}
-                    onEndSession={handleEndSession}
-                    isHintLoading={isHintLoading}
-                    isRecapLoading={isRecapLoading}
-                  />
-                </div>
-              </div>
-            </div>
-          </main>
-          <RecapDialog isOpen={isRecapOpen} onOpenChange={resetSession} summary={summary} />
-        </>
-      )}
+      {renderContent()}
     </div>
   );
 }
