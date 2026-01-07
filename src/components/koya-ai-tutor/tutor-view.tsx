@@ -10,6 +10,8 @@ import { RecapDialog } from './recap-dialog';
 import { LandingPage } from './landing-page';
 import { ProblemForm, type ProblemSubmitData } from './problem-form';
 import { UploadOptionsPage } from './upload-options-page';
+import { AuthDialog, type AuthSubmitData } from './auth-dialog';
+import { ProblemUploadForm } from './problem-upload-form';
 
 export type Message = {
   role: 'user' | 'assistant' | 'hint';
@@ -30,6 +32,10 @@ export function TutorView() {
   const [isHintLoading, setIsHintLoading] = useState(false);
   const [isRecapLoading, setIsRecapLoading] = useState(false);
   const [isRecapOpen, setIsRecapOpen] = useState(false);
+  const [isAuthOpen, setIsAuthOpen] = useState(false);
+  const [authLoading, setAuthLoading] = useState(false);
+
+  const [pendingProblemData, setPendingProblemData] = useState<ProblemSubmitData | null>(null);
 
   const { toast } = useToast();
 
@@ -44,6 +50,7 @@ export function TutorView() {
     setIsLoading(false);
     setIsHintLoading(false);
     setIsRecapLoading(false);
+    setAuthLoading(false);
   }, [toast]);
 
   const handleStartProblemText = () => {
@@ -62,6 +69,29 @@ export function TutorView() {
     setViewState('landing');
   }
 
+  const handleTriggerAuth = (data: ProblemSubmitData) => {
+    setPendingProblemData(data);
+    setIsAuthOpen(true);
+  };
+
+  const handleAuthSubmit = async (data: AuthSubmitData) => {
+    setAuthLoading(true);
+    // Simulate auth call
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    try {
+        console.log('Auth successful for', data.email);
+        setIsAuthOpen(false);
+        if (pendingProblemData) {
+            await handleStartSession(pendingProblemData);
+        }
+    } catch (error) {
+        handleError('Authentication Failed', error);
+    } finally {
+        setAuthLoading(false);
+        setPendingProblemData(null);
+    }
+  }
+
   const handleStartSession = useCallback(async (data: ProblemSubmitData) => {
     setIsLoading(true);
     setMessages([]);
@@ -70,7 +100,7 @@ export function TutorView() {
     // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 1000));
     try {
-      const firstMessage = data.imageDataUri ? `I've uploaded an image. Here's a description: ${data.problem}` : data.problem;
+      const firstMessage = data.imageDataUri ? `I've uploaded an image. Here's my question: ${data.problem}` : data.problem;
       setMessages([
         { role: 'user', content: firstMessage },
         { role: 'assistant', content: "This is an interesting problem. What have you tried so far?" }
@@ -145,7 +175,9 @@ export function TutorView() {
       case 'landing':
         return <LandingPage onStartProblem={handleStartProblemText} onStartUpload={handleStartUpload} />;
       case 'problem_form_text':
-        return <ProblemForm onBack={handleBackToHome} onSubmit={handleStartSession} isLoading={isLoading} />;
+        return <ProblemForm onBack={handleBackToHome} onSubmit={handleTriggerAuth} isLoading={isLoading} />;
+      case 'problem_form_upload':
+        return <ProblemUploadForm onBack={handleBackToHome} onSubmit={handleTriggerAuth} isLoading={isLoading} />;
       case 'upload_options':
         return <UploadOptionsPage onBack={handleBackToHome} onSelectUpload={handleStartProblemUpload} />;
       case 'tutor_session':
@@ -186,6 +218,12 @@ export function TutorView() {
   return (
     <div className="flex min-h-screen flex-col bg-[#FDFCEC]">
       {renderContent()}
+      <AuthDialog 
+        isOpen={isAuthOpen} 
+        onOpenChange={setIsAuthOpen}
+        onSubmit={handleAuthSubmit}
+        isLoading={authLoading}
+      />
     </div>
   );
 }
