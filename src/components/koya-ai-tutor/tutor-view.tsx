@@ -17,6 +17,7 @@ import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { PanelLeft } from 'lucide-react';
 import { SubscriptionPlan } from './subscription-plan';
+import { PaymentPage } from './payment-page';
 
 
 export type Message = {
@@ -24,7 +25,7 @@ export type Message = {
   content: string;
 };
 
-type ViewState = 'landing' | 'problem_form_text' | 'problem_form_upload' | 'upload_options' | 'tutor_session' | 'subscription_plan';
+type ViewState = 'landing' | 'problem_form_text' | 'problem_form_upload' | 'upload_options' | 'tutor_session' | 'subscription_plan' | 'payment_page';
 
 export function TutorView() {
   const [viewState, setViewState] = useState<ViewState>('landing');
@@ -33,6 +34,7 @@ export function TutorView() {
   const [problem, setProblem] = useState('');
   const [summary, setSummary] = useState('');
   const [progress, setProgress] = useState('');
+  const [selectedPlan, setSelectedPlan] = useState('');
   
   const [isLoading, setIsLoading] = useState(false);
   const [isHintLoading, setIsHintLoading] = useState(false);
@@ -42,7 +44,6 @@ export function TutorView() {
   const [authLoading, setAuthLoading] = useState(false);
 
   const [pendingProblemData, setPendingProblemData] = useState<ProblemSubmitData | null>(null);
-  const [isNewUser, setIsNewUser] = useState(false);
 
   const { toast } = useToast();
   const isMobile = useIsMobile();
@@ -77,6 +78,10 @@ export function TutorView() {
     setViewState('landing');
   }
 
+  const handleBackToPlans = () => {
+    setViewState('subscription_plan');
+  }
+
   const handleTriggerAuth = (data: ProblemSubmitData) => {
     setPendingProblemData(data);
     setIsAuthOpen(true);
@@ -91,7 +96,6 @@ export function TutorView() {
         setIsAuthOpen(false);
 
         if (data.type === 'signup') {
-            setIsNewUser(true);
             setViewState('subscription_plan');
         } else if (pendingProblemData) {
             await handleStartSession(pendingProblemData);
@@ -105,10 +109,30 @@ export function TutorView() {
 
   const handlePlanSelected = async (plan: string) => {
     console.log(`Plan selected: ${plan}`);
-    if (pendingProblemData) {
-      await handleStartSession(pendingProblemData);
+    setSelectedPlan(plan);
+    if (plan === 'Free') {
+      if (pendingProblemData) {
+        await handleStartSession(pendingProblemData);
+      }
+    } else {
+      setViewState('payment_page');
     }
   };
+
+  const handlePaymentSubmit = async () => {
+    setIsLoading(true);
+    // Simulate payment processing
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    try {
+      if (pendingProblemData) {
+        await handleStartSession(pendingProblemData);
+      }
+    } catch (error) {
+      handleError('Payment Failed', error);
+    } finally {
+      setIsLoading(false);
+    }
+  }
 
   const handleStartSession = useCallback(async (data: ProblemSubmitData) => {
     setIsLoading(true);
@@ -130,7 +154,6 @@ export function TutorView() {
     } finally {
       setIsLoading(false);
       setPendingProblemData(null);
-      setIsNewUser(false);
     }
   }, [handleError]);
   
@@ -210,6 +233,8 @@ export function TutorView() {
         return <UploadOptionsPage onBack={handleBackToHome} onSelectUpload={handleStartProblemUpload} />;
       case 'subscription_plan':
         return <SubscriptionPlan onPlanSelected={handlePlanSelected} />;
+      case 'payment_page':
+        return <PaymentPage plan={selectedPlan} onBack={handleBackToPlans} onSubmit={handlePaymentSubmit} isLoading={isLoading} />;
       case 'tutor_session':
         return (
           <>
