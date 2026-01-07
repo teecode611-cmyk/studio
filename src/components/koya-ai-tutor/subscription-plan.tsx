@@ -27,13 +27,22 @@ const plans = [
 ];
 
 const MostPopularBadge = () => (
-    <div className="absolute -top-5 right-2 h-20 w-20">
-        <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" className="absolute -top-2 -right-4 h-24 w-24">
-            <polygon points="50,0 61,35 98,35 68,57 79,91 50,70 21,91 32,57 2,35 39,35" fill="hsl(var(--accent))" />
-            <polygon points="50,5 59,35 92,35 65,54 74,85 50,66 26,85 35,54 8,35 41,35" fill="hsl(var(--primary))" stroke="hsl(var(--accent))" strokeWidth="2" />
+    <div className="absolute -top-4 -right-4 h-24 w-24">
+        <svg width="96" height="96" viewBox="0 0 96 96" fill="none" xmlns="http://www.w3.org/2000/svg">
+            {/* Hanging Ribbons */}
+            <path d="M38 48 L24 88 L35 80 L48 92 L61 80 L72 88 L58 48 Z" fill="hsl(var(--primary))"/>
+            <path d="M38 48 L24 88 L26 87 L38 79 L48 90 L58 79 L70 87 L72 88 L58 48 Z" stroke="hsl(var(--accent))" strokeWidth="1.5" fill="none" />
+            
+            {/* Fluted Ribbon */}
+            <circle cx="48" cy="48" r="28" fill="hsl(var(--accent))"/>
+            <circle cx="48" cy="48" r="26" fill="hsl(var(--primary))"/>
+            <circle cx="48" cy="48" r="23" fill="hsl(var(--accent))"/>
+            
+            {/* Center Circle */}
+            <circle cx="48" cy="48" r="22" fill="hsl(var(--card))"/>
         </svg>
-        <span className="absolute left-1/2 top-[2.1rem] -translate-x-1/2 -translate-y-1/2 -rotate-12 transform text-sm font-bold text-accent-foreground">Most</span>
-        <span className="absolute left-1/2 top-[2.9rem] -translate-x-1/2 -translate-y-1/2 rotate-6 transform text-sm font-bold text-accent-foreground">Popular</span>
+        <span className="absolute left-1/2 top-[40px] -translate-x-1/2 -translate-y-1/2 -rotate-12 transform text-xs font-bold text-primary">Most</span>
+        <span className="absolute left-1/2 top-[52px] -translate-x-1/2 -translate-y-1/2 rotate-6 transform text-xs font-bold text-primary">Popular</span>
     </div>
 );
 
