@@ -12,6 +12,10 @@ import { ProblemForm, type ProblemSubmitData } from './problem-form';
 import { UploadOptionsPage } from './upload-options-page';
 import { AuthDialog, type AuthSubmitData } from './auth-dialog';
 import { ProblemUploadForm } from './problem-upload-form';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { Button } from '@/components/ui/button';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { PanelLeft } from 'lucide-react';
 
 export type Message = {
   role: 'user' | 'assistant' | 'hint';
@@ -38,6 +42,7 @@ export function TutorView() {
   const [pendingProblemData, setPendingProblemData] = useState<ProblemSubmitData | null>(null);
 
   const { toast } = useToast();
+  const isMobile = useIsMobile();
 
   const handleError = useCallback((title: string, error: unknown) => {
     const message = error instanceof Error ? error.message : 'An unexpected error occurred.';
@@ -168,6 +173,15 @@ export function TutorView() {
     setIsRecapOpen(false);
     setViewState('landing');
   };
+
+  const renderSidebar = () => (
+    <SidebarPanel
+      progress={progress}
+      onGetHint={handleGetHint}
+      isHintLoading={isHintLoading}
+      isRecapLoading={isRecapLoading}
+    />
+  );
   
   const renderContent = () => {
     switch (viewState) {
@@ -192,20 +206,31 @@ export function TutorView() {
                       isLoading={isLoading}
                       onSendMessage={handleSendMessage}
                       problem={problem}
+                      onEndSession={handleEndSession}
+                      isRecapLoading={isRecapLoading}
                     />
                   </div>
                   <div className="hidden lg:block">
-                    <SidebarPanel
-                      progress={progress}
-                      onGetHint={handleGetHint}
-                      onEndSession={handleEndSession}
-                      isHintLoading={isHintLoading}
-                      isRecapLoading={isRecapLoading}
-                    />
+                    {renderSidebar()}
                   </div>
                 </div>
               </div>
             </main>
+
+            {isMobile && (
+              <Sheet>
+                <SheetTrigger asChild>
+                  <Button variant="outline" size="icon" className="fixed bottom-4 right-4 z-20 rounded-full shadow-lg lg:hidden">
+                    <PanelLeft className="h-5 w-5" />
+                    <span className="sr-only">Toggle Sidebar</span>
+                  </Button>
+                </SheetTrigger>
+                <SheetContent>
+                  {renderSidebar()}
+                </SheetContent>
+              </Sheet>
+            )}
+
             <RecapDialog isOpen={isRecapOpen} onOpenChange={resetSession} summary={summary} />
           </>
         )

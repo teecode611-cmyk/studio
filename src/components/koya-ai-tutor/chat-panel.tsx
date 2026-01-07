@@ -4,7 +4,7 @@ import { useEffect, useRef } from 'react';
 import { useForm, type SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { SendHorizontal, Loader2, Bot } from 'lucide-react';
+import { SendHorizontal, Loader2, Bot, BookCheck } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -24,9 +24,18 @@ interface ChatPanelProps {
   isLoading: boolean;
   onSendMessage: (message: string) => void;
   problem: string;
+  onEndSession: () => void;
+  isRecapLoading: boolean;
 }
 
-export function ChatPanel({ messages, isLoading, onSendMessage, problem }: ChatPanelProps) {
+export function ChatPanel({
+  messages,
+  isLoading,
+  onSendMessage,
+  problem,
+  onEndSession,
+  isRecapLoading,
+}: ChatPanelProps) {
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -71,7 +80,7 @@ export function ChatPanel({ messages, isLoading, onSendMessage, problem }: ChatP
           )}
         </div>
       </ScrollArea>
-      <div className="mt-4">
+      <div className="mt-4 flex flex-col gap-4">
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(handleFormSubmit)}
@@ -99,6 +108,19 @@ export function ChatPanel({ messages, isLoading, onSendMessage, problem }: ChatP
             </Button>
           </form>
         </Form>
+        <Button 
+          variant="secondary" 
+          className="w-full justify-center gap-2" 
+          onClick={onEndSession}
+          disabled={isLoading || isRecapLoading}
+        >
+          {isRecapLoading ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <BookCheck className="h-4 w-4" />
+          )}
+          <span>{isRecapLoading ? 'Generating Recap...' : 'End Session & Recap'}</span>
+        </Button>
       </div>
     </div>
   );

@@ -1,12 +1,11 @@
 // @/components/koya-ai-tutor/sidebar-panel.tsx
 import { Button } from '@/components/ui/button';
 import { StepTracker } from './step-tracker';
-import { Lightbulb, BookCheck, Loader2 } from 'lucide-react';
+import { Lightbulb, Loader2 } from 'lucide-react';
 
 interface SidebarPanelProps {
   progress?: string;
   onGetHint: () => void;
-  onEndSession: () => void;
   isHintLoading: boolean;
   isRecapLoading: boolean;
 }
@@ -14,7 +13,6 @@ interface SidebarPanelProps {
 export function SidebarPanel({
   progress,
   onGetHint,
-  onEndSession,
   isHintLoading,
   isRecapLoading
 }: SidebarPanelProps) {
@@ -34,19 +32,6 @@ export function SidebarPanel({
             <Lightbulb className="h-4 w-4 text-accent" />
           )}
           <span>{isHintLoading ? 'Getting Hint...' : 'Get a Hint'}</span>
-        </Button>
-        <Button 
-          variant="secondary" 
-          className="w-full justify-start gap-2" 
-          onClick={onEndSession}
-          disabled={isHintLoading || isRecapLoading}
-        >
-          {isRecapLoading ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
-          ) : (
-            <BookCheck className="h-4 w-4" />
-          )}
-          <span>{isRecapLoading ? 'Generating Recap...' : 'End Session & Recap'}</span>
         </Button>
       </div>
     </div>
