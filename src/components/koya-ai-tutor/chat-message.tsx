@@ -24,7 +24,7 @@ export function ChatMessage({ message }: ChatMessageProps) {
       : 'rounded-bl-none',
     isHint
       ? 'border-yellow-300 bg-yellow-50 text-foreground'
-      : 'bg-primary text-primary-foreground',
+      : '',
     !isUser && !isHint && 'bg-primary text-primary-foreground'
   );
 
