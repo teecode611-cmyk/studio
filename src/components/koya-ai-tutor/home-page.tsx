@@ -69,12 +69,12 @@ export function HomePage({ onStartProblem, onStartUpload, onGoToAccount }: HomeP
       )}
 
       {/* Bottom Navigation */}
-      <footer className="relative z-20 mt-auto">
-        <div className="mx-auto grid h-20 max-w-sm grid-cols-2 items-center gap-4 bg-accent p-2">
+      <footer className="fixed bottom-0 left-0 right-0 z-20 p-4">
+        <div className="mx-auto grid h-20 max-w-sm grid-cols-2 items-center gap-4 rounded-2xl bg-accent p-2 shadow-2xl">
           <button
             onClick={handleAskClick}
             className={cn(
-              'flex h-full flex-col items-center justify-center gap-1 rounded-lg text-primary transition-colors',
+              'flex h-full flex-col items-center justify-center gap-1 rounded-xl text-primary transition-colors',
               activeTab === 'ask' ? 'bg-primary/10' : ''
             )}
           >
@@ -84,7 +84,7 @@ export function HomePage({ onStartProblem, onStartUpload, onGoToAccount }: HomeP
           <button
             onClick={handleProfileClick}
             className={cn(
-              'flex h-full flex-col items-center justify-center gap-1 rounded-lg text-primary transition-colors',
+              'flex h-full flex-col items-center justify-center gap-1 rounded-xl text-primary transition-colors',
               activeTab === 'profile' ? 'bg-primary/10' : ''
             )}
           >
