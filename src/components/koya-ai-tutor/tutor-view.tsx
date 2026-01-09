@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useCallback } from 'react';
@@ -7,9 +8,7 @@ import { Header } from './header';
 import { ChatPanel } from './chat-panel';
 import { SidebarPanel } from './sidebar-panel';
 import { RecapDialog } from './recap-dialog';
-import { LandingPage } from './landing-page';
 import { ProblemForm, type ProblemSubmitData } from './problem-form';
-import { UploadOptionsPage } from './upload-options-page';
 import { AuthDialog, type AuthSubmitData } from './auth-dialog';
 import { ProblemUploadForm } from './problem-upload-form';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -19,6 +18,7 @@ import { PanelLeft } from 'lucide-react';
 import { SubscriptionPlan } from './subscription-plan';
 import { PaymentPage } from './payment-page';
 import { AccountPage } from './account-page';
+import { HomePage } from './home-page';
 
 
 export type Message = {
@@ -26,10 +26,10 @@ export type Message = {
   content: string;
 };
 
-type ViewState = 'landing' | 'problem_form_text' | 'problem_form_upload' | 'upload_options' | 'tutor_session' | 'subscription_plan' | 'payment_page' | 'account';
+type ViewState = 'home' | 'problem_form_text' | 'problem_form_upload' | 'tutor_session' | 'subscription_plan' | 'payment_page' | 'account';
 
 export function TutorView() {
-  const [viewState, setViewState] = useState<ViewState>('landing');
+  const [viewState, setViewState] = useState<ViewState>('home');
   
   const [messages, setMessages] = useState<Message[]>([]);
   const [problem, setProblem] = useState('');
@@ -72,12 +72,8 @@ export function TutorView() {
     setViewState('problem_form_upload');
   }
 
-  const handleStartUpload = () => {
-    setViewState('upload_options');
-  }
-
   const handleBackToHome = () => {
-    setViewState('landing');
+    setViewState('home');
   }
 
   const handleGoToAccount = () => {
@@ -89,8 +85,16 @@ export function TutorView() {
   }
 
   const handleTriggerAuth = (data: ProblemSubmitData) => {
-    setPendingProblemData(data);
-    setIsAuthOpen(true);
+    // This is where authentication would be triggered.
+    // For now, we will simulate a new user sign up flow or a returning user.
+    // Let's assume for now every text entry is a new user for demo purposes.
+    const isNewUser = true; // or based on actual auth state
+    if (isNewUser) {
+        setPendingProblemData(data);
+        setViewState('subscription_plan'); // Go to plans for new user
+    } else {
+        handleStartSession(data);
+    }
   };
 
   const handleAuthSubmit = async (data: AuthSubmitData) => {
@@ -119,6 +123,8 @@ export function TutorView() {
     if (plan === 'Free') {
       if (pendingProblemData) {
         await handleStartSession(pendingProblemData);
+      } else {
+        setViewState('home'); // Go back home if no pending problem
       }
     } else {
       setViewState('payment_page');
@@ -137,6 +143,8 @@ export function TutorView() {
     try {
       if (pendingProblemData) {
         await handleStartSession(pendingProblemData);
+      } else {
+        setViewState('home');
       }
     } catch (error) {
       handleError('Payment Failed', error);
@@ -161,7 +169,7 @@ export function TutorView() {
       setViewState('tutor_session');
     } catch (error) {
       handleError('Could not start session', error);
-      setViewState('landing');
+      setViewState('home');
     } finally {
       setIsLoading(false);
       setPendingProblemData(null);
@@ -222,7 +230,7 @@ export function TutorView() {
     setSummary('');
     setProgress('');
     setIsRecapOpen(false);
-    setViewState('landing');
+    setViewState('home');
   };
 
   const renderSidebar = () => (
@@ -236,14 +244,12 @@ export function TutorView() {
   
   const renderContent = () => {
     switch (viewState) {
-      case 'landing':
-        return <LandingPage onStartProblem={handleStartProblemText} onStartUpload={handleStartUpload} />;
+      case 'home':
+        return <HomePage onStartProblem={handleStartProblemText} onStartUpload={handleStartProblemUpload} onGoToAccount={handleGoToAccount} />;
       case 'problem_form_text':
         return <ProblemForm onBack={handleBackToHome} onSubmit={handleTriggerAuth} isLoading={isLoading} />;
       case 'problem_form_upload':
         return <ProblemUploadForm onBack={handleBackToHome} onSubmit={handleTriggerAuth} isLoading={isLoading} />;
-      case 'upload_options':
-        return <UploadOptionsPage onBack={handleBackToHome} onSelectUpload={handleStartProblemUpload} />;
       case 'subscription_plan':
         return <SubscriptionPlan onPlanSelected={handlePlanSelected} />;
       case 'payment_page':
@@ -292,7 +298,7 @@ export function TutorView() {
           </>
         )
       default:
-        return <LandingPage onStartProblem={handleStartProblemText} onStartUpload={handleStartUpload} />;
+        return <HomePage onStartProblem={handleStartProblemText} onStartUpload={handleStartProblemUpload} onGoToAccount={handleGoToAccount} />;
     }
   }
 

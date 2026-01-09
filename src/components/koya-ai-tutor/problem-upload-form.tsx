@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useRef, useEffect, useCallback } from 'react';
@@ -194,4 +195,3 @@ export function ProblemUploadForm({ onSubmit, isLoading, onBack }: ProblemUpload
     </div>
   );
 }
-

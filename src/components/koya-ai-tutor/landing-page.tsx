@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Button } from '@/components/ui/button';
@@ -35,10 +36,11 @@ const KoyaLogo = () => (
 interface LandingPageProps {
   onStartProblem: () => void;
   onStartUpload: () => void;
+  onTriggerAuth: () => void;
 }
 
 
-export function LandingPage({ onStartProblem, onStartUpload }: LandingPageProps) {
+export function LandingPage({ onStartProblem, onStartUpload, onTriggerAuth }: LandingPageProps) {
 
   return (
     <div className="relative flex h-screen w-full flex-col overflow-hidden bg-[#FDFCEC]">
@@ -82,7 +84,7 @@ export function LandingPage({ onStartProblem, onStartUpload }: LandingPageProps)
                 <Camera className="h-5 w-5 text-accent" />
                 Upload Photo
             </Button>
-             <Button variant="ghost" className="mt-4 font-bold text-accent hover:text-accent/80">
+             <Button variant="ghost" className="mt-4 font-bold text-accent hover:text-accent/80" onClick={onTriggerAuth}>
                 Log In
             </Button>
         </div>
