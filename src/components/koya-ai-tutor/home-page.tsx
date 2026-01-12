@@ -15,7 +15,6 @@ interface HomePageProps {
 
 export function HomePage({ onStartProblem, onStartUpload, onGoToAccount }: HomePageProps) {
   const [activeTab, setActiveTab] = useState<'ask' | 'profile' | null>(null);
-  const heroImage = PlaceHolderImages.find(p => p.id === 'socratic-ai-hero-lightbulb');
 
   const handleAskClick = () => {
     // Toggle input methods visibility, don't navigate away
@@ -31,22 +30,19 @@ export function HomePage({ onStartProblem, onStartUpload, onGoToAccount }: HomeP
     <div className="relative flex h-screen w-full flex-col overflow-hidden">
       {/* Hero Image and Gradient */}
       <div className="absolute inset-0">
-        {heroImage && 
-          <Image
-            src={heroImage.imageUrl}
-            alt={heroImage.description}
-            fill
-            className="object-cover"
-            data-ai-hint={heroImage.imageHint}
-            priority
-          />
-        }
+        <Image
+          src="https://lh3.googleusercontent.com/gg-dl/ABS2GSlwSFY2vxEbPJfDuRMsk-C-EXNktRVc9CetMhOh4zlZlFwlbzM9g05c3L4BwBlO1T1fL0qNXk1opufzTIzvnxkmIunDrUcTlC8FPvZQMOdtCKXRWYdk8ax2Mn7iEqvOrF6aWlFytthonktTH3_OOvcZ_yY6656I3fUugCHvxiB1KCkF-A=s1024-rj"
+          alt="Glowing lightbulb background"
+          fill
+          className="object-cover"
+          priority
+        />
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
       </div>
 
       {/* Main Content */}
       <main className="relative z-10 flex flex-1 flex-col items-center justify-center p-4 text-center text-white">
-        <h1 className="text-5xl font-bold">Guidance. Not Answers.</h1>
+        <h1 className="text-5xl font-bold uppercase">Guidance. Not Answers.</h1>
         <p className="mt-2 text-xl">What can I help you understand today?</p>
       </main>
 
@@ -69,7 +65,7 @@ export function HomePage({ onStartProblem, onStartUpload, onGoToAccount }: HomeP
       )}
 
       {/* Bottom Navigation */}
-      <footer className="fixed bottom-0 left-0 right-0 z-20 p-4">
+      <footer className="fixed bottom-4 left-0 right-0 z-20 p-4">
         <div className="mx-auto grid h-20 max-w-sm grid-cols-2 items-center gap-4 rounded-2xl bg-accent p-2 shadow-2xl">
           <button
             onClick={handleAskClick}
