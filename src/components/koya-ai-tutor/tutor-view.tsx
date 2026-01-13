@@ -19,6 +19,8 @@ import { SubscriptionPlan } from './subscription-plan';
 import { PaymentPage } from './payment-page';
 import { AccountPage } from './account-page';
 import { HomePage } from './home-page';
+import { AudioRecorderDialog } from './audio-recorder-dialog';
+import { transcribeAudio } from '@/ai/flows/transcribe-audio-flow';
 
 
 export type Message = {
@@ -44,6 +46,7 @@ export function TutorView() {
   const [isRecapOpen, setIsRecapOpen] = useState(false);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [authLoading, setAuthLoading] = useState(false);
+  const [isAudioRecorderOpen, setIsAudioRecorderOpen] = useState(false);
 
   const [pendingProblemData, setPendingProblemData] = useState<ProblemSubmitData | null>(null);
 
@@ -72,8 +75,12 @@ export function TutorView() {
     setViewState('problem_form_upload');
   }
 
+  const handleStartProblemVoice = () => {
+    setIsAudioRecorderOpen(true);
+  }
+
   const handleBackToHome = () => {
-    setViewState('home');
+    resetSession();
   }
 
   const handleGoToAccount = () => {
@@ -224,6 +231,23 @@ export function TutorView() {
     }
   };
 
+  const handleAudioTranscription = async (audioDataUri: string) => {
+    setIsLoading(true);
+    try {
+        const { transcription } = await transcribeAudio({ audioDataUri });
+        if (transcription) {
+            handleTriggerAuth({ problem: transcription });
+        } else {
+            throw new Error('Transcription failed.');
+        }
+    } catch (error) {
+        handleError('Could not transcribe audio', error);
+    } finally {
+        setIsLoading(false);
+    }
+  };
+
+
   const resetSession = () => {
     setMessages([]);
     setProblem('');
@@ -245,7 +269,7 @@ export function TutorView() {
   const renderContent = () => {
     switch (viewState) {
       case 'home':
-        return <HomePage onStartProblem={handleStartProblemText} onStartUpload={handleStartProblemUpload} onGoToAccount={handleGoToAccount} />;
+        return <HomePage onStartProblem={handleStartProblemText} onStartUpload={handleStartProblemUpload} onStartVoice={handleStartProblemVoice} onGoToAccount={handleGoToAccount} />;
       case 'problem_form_text':
         return <ProblemForm onBack={handleBackToHome} onSubmit={handleTriggerAuth} isLoading={isLoading} />;
       case 'problem_form_upload':
@@ -298,7 +322,7 @@ export function TutorView() {
           </>
         )
       default:
-        return <HomePage onStartProblem={handleStartProblemText} onStartUpload={handleStartProblemUpload} onGoToAccount={handleGoToAccount} />;
+        return <HomePage onStartProblem={handleStartProblemText} onStartUpload={handleStartProblemUpload} onStartVoice={handleStartProblemVoice} onGoToAccount={handleGoToAccount} />;
     }
   }
 
@@ -311,6 +335,12 @@ export function TutorView() {
         onSubmit={handleAuthSubmit}
         isLoading={authLoading}
       />
+      <AudioRecorderDialog
+        isOpen={isAudioRecorderOpen}
+        onOpenChange={setIsAudioRecorderOpen}
+        onSubmit={handleAudioTranscription}
+        isSubmitting={isLoading}
+       />
     </div>
   );
 }

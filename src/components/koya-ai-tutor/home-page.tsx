@@ -10,10 +10,11 @@ import { PlaceHolderImages } from '@/lib/placeholder-images';
 interface HomePageProps {
   onStartProblem: () => void;
   onStartUpload: () => void;
+  onStartVoice: () => void;
   onGoToAccount: () => void;
 }
 
-export function HomePage({ onStartProblem, onStartUpload, onGoToAccount }: HomePageProps) {
+export function HomePage({ onStartProblem, onStartUpload, onStartVoice, onGoToAccount }: HomePageProps) {
   const [activeTab, setActiveTab] = useState<'ask' | 'profile' | null>(null);
 
   const handleAskClick = () => {
@@ -31,11 +32,12 @@ export function HomePage({ onStartProblem, onStartUpload, onGoToAccount }: HomeP
       {/* Hero Image and Gradient Overlay */}
       <div className="absolute inset-0">
         <Image
-          src="/background.png"
+          src="https://lh3.googleusercontent.com/gg-dl/ABS2GSlwSFY2vxEbPJfDuRMsk-C-EXNktRVc9CetMhOh4zlZlFwlbzM9g05c3L4BwBlO1T1fL0qNXk1opufzTIzvnxkmIunDrUcTlC8FPvZQMOdtCKXRWYdk8ax2Mn7iEqvOrF6aWlFytthonktTH3_OOvcZ_yY6656I3fUugCHvxiB1KCkF-A=s1024-rj"
           alt="Glowing lightbulb background"
           fill
           className="object-cover"
           priority
+          data-ai-hint="idea lightbulb"
         />
         {/* Lighting Gradient Overlay */}
         <div 
@@ -49,7 +51,7 @@ export function HomePage({ onStartProblem, onStartUpload, onGoToAccount }: HomeP
       {/* Main Content */}
       <main className="relative z-10 flex flex-1 flex-col items-center p-4 text-center text-white">
         <div className="mt-[45vh] flex flex-col items-center">
-          <h1 className="text-5xl font-bold uppercase tracking-tight">Guidance. Not Answers.</h1>
+          <h1 className="text-5xl font-bold uppercase tracking-tight">GUIDANCE. NOT ANSWERS.</h1>
           <div className="h-12" /> {/* Spacer */}
           <p className="text-xl font-medium">What can I help you understand today?</p>
         </div>
@@ -66,7 +68,7 @@ export function HomePage({ onStartProblem, onStartUpload, onGoToAccount }: HomeP
             <Camera size={32} />
             <span className="text-xs">Camera</span>
           </button>
-          <button className="flex flex-col items-center gap-2 text-white opacity-50 cursor-not-allowed">
+          <button onClick={onStartVoice} className="flex flex-col items-center gap-2 text-white">
             <Mic size={32} />
             <span className="text-xs">Voice</span>
           </button>
