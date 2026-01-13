@@ -32,7 +32,7 @@ export function HomePage({ onStartProblem, onStartUpload, onStartVoice, onGoToAc
   return (
     <div className="relative flex h-screen w-full flex-col overflow-hidden">
       {/* Hero Image and Gradient Overlay */}
-      <div className="absolute inset-0">
+      <div className="absolute inset-0 z-0">
         {heroImage && (
           <Image
             src={heroImage.imageUrl}
@@ -45,7 +45,7 @@ export function HomePage({ onStartProblem, onStartUpload, onStartVoice, onGoToAc
         )}
         {/* Lighting Gradient Overlay */}
         <div 
-          className="absolute inset-0" 
+          className="absolute inset-0 z-10" 
           style={{ 
             background: 'linear-gradient(to bottom, transparent 0%, transparent 25%, rgba(0,0,0,0.8) 50%, black 75%, black 100%)' 
           }} 
@@ -53,7 +53,7 @@ export function HomePage({ onStartProblem, onStartUpload, onStartVoice, onGoToAc
       </div>
 
       {/* Main Content */}
-      <main className="relative z-10 flex flex-1 flex-col items-center p-4 text-center text-white">
+      <main className="relative z-20 flex flex-1 flex-col items-center p-4 text-center text-white">
         <div className="mt-[45vh] flex flex-col items-center">
           <h1 className="text-5xl font-bold uppercase tracking-tight">GUIDANCE. NOT ANSWERS.</h1>
           <div className="h-12" /> {/* Spacer */}
@@ -63,7 +63,7 @@ export function HomePage({ onStartProblem, onStartUpload, onStartVoice, onGoToAc
 
       {/* Top Input Icons (conditionally rendered) */}
       {activeTab === 'ask' && (
-        <div className="absolute top-8 left-1/2 -translate-x-1/2 z-20 flex gap-8 rounded-full bg-black/30 p-4 backdrop-blur-sm">
+        <div className="absolute top-8 left-1/2 -translate-x-1/2 z-30 flex gap-8 rounded-full bg-black/30 p-4 backdrop-blur-sm">
           <button onClick={onStartProblem} className="flex flex-col items-center gap-2 text-white">
             <Keyboard size={32} />
             <span className="text-xs">Keyboard</span>
@@ -80,7 +80,7 @@ export function HomePage({ onStartProblem, onStartUpload, onStartVoice, onGoToAc
       )}
 
       {/* Bottom Navigation */}
-      <footer className="fixed bottom-4 left-0 right-0 z-20 p-4">
+      <footer className="fixed bottom-4 left-0 right-0 z-30 p-4">
         <div className="mx-auto grid h-20 max-w-sm grid-cols-2 items-center gap-4 rounded-2xl bg-accent p-2 shadow-2xl">
           <button
             onClick={handleAskClick}
