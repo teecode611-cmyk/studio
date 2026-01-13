@@ -27,18 +27,22 @@ export function HomePage({ onStartProblem, onStartUpload, onStartVoice, onGoToAc
     onGoToAccount();
   };
 
+  const heroImage = PlaceHolderImages.find(p => p.id === 'socratic-ai-hero-lightbulb');
+
   return (
     <div className="relative flex h-screen w-full flex-col overflow-hidden">
       {/* Hero Image and Gradient Overlay */}
       <div className="absolute inset-0">
-        <Image
-          src="https://lh3.googleusercontent.com/gg-dl/ABS2GSlwSFY2vxEbPJfDuRMsk-C-EXNktRVc9CetMhOh4zlZlFwlbzM9g05c3L4BwBlO1T1fL0qNXk1opufzTIzvnxkmIunDrUcTlC8FPvZQMOdtCKXRWYdk8ax2Mn7iEqvOrF6aWlFytthonktTH3_OOvcZ_yY6656I3fUugCHvxiB1KCkF-A=s1024-rj"
-          alt="Glowing lightbulb background"
-          fill
-          className="object-cover"
-          priority
-          data-ai-hint="idea lightbulb"
-        />
+        {heroImage && (
+          <Image
+            src={heroImage.imageUrl}
+            alt={heroImage.description}
+            fill
+            className="object-cover"
+            priority
+            data-ai-hint={heroImage.imageHint}
+          />
+        )}
         {/* Lighting Gradient Overlay */}
         <div 
           className="absolute inset-0" 
