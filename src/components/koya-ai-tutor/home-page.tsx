@@ -28,22 +28,31 @@ export function HomePage({ onStartProblem, onStartUpload, onGoToAccount }: HomeP
 
   return (
     <div className="relative flex h-screen w-full flex-col overflow-hidden">
-      {/* Hero Image and Gradient */}
+      {/* Hero Image and Gradient Overlay */}
       <div className="absolute inset-0">
         <Image
-          src="https://lh3.googleusercontent.com/gg-dl/ABS2GSlwSFY2vxEbPJfDuRMsk-C-EXNktRVc9CetMhOh4zlZlFwlbzM9g05c3L4BwBlO1T1fL0qNXk1opufzTIzvnxkmIunDrUcTlC8FPvZQMOdtCKXRWYdk8ax2Mn7iEqvOrF6aWlFytthonktTH3_OOvcZ_yY6656I3fUugCHvxiB1KCkF-A=s1024-rj"
+          src="/background.png"
           alt="Glowing lightbulb background"
           fill
           className="object-cover"
           priority
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+        {/* Lighting Gradient Overlay */}
+        <div 
+          className="absolute inset-0" 
+          style={{ 
+            background: 'linear-gradient(to bottom, transparent 0%, transparent 25%, rgba(0,0,0,0.8) 50%, black 75%, black 100%)' 
+          }} 
+        />
       </div>
 
       {/* Main Content */}
-      <main className="relative z-10 flex flex-1 flex-col items-center justify-center p-4 text-center text-white">
-        <h1 className="text-5xl font-bold uppercase">Guidance. Not Answers.</h1>
-        <p className="mt-2 text-xl">What can I help you understand today?</p>
+      <main className="relative z-10 flex flex-1 flex-col items-center p-4 text-center text-white">
+        <div className="mt-[45vh] flex flex-col items-center">
+          <h1 className="text-5xl font-bold uppercase tracking-tight">Guidance. Not Answers.</h1>
+          <div className="h-12" /> {/* Spacer */}
+          <p className="text-xl font-medium">What can I help you understand today?</p>
+        </div>
       </main>
 
       {/* Top Input Icons (conditionally rendered) */}
