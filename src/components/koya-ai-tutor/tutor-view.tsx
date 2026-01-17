@@ -157,16 +157,18 @@ export function TutorView() {
 
   const handleStartSession = useCallback(async (data: ProblemSubmitData) => {
     setIsLoading(true);
+    const userProblem = data.problem || 'Please analyze the attached image.';
+    setProblem(userProblem);
     setMessages([]);
-    setProblem(data.problem || 'Image based problem');
     
     // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 1000));
     try {
-      const firstMessage: Message = { role: 'assistant', content: "Hello! How can I assist you today?" };
-      setMessages([
-        firstMessage,
-      ]);
+      const initialMessages: Message[] = [
+        { role: 'user', content: userProblem },
+        { role: 'assistant', content: "Thanks for sharing that. Let's dig in. What have you tried so far?" }
+      ];
+      setMessages(initialMessages);
       setProgress("1. Understand the problem.\n2. Devise a plan.");
       setViewState('tutor_session');
     } catch (error) {
