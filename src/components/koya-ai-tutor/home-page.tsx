@@ -1,20 +1,20 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
-import { Camera, Keyboard, Mic, MessageSquare, User } from 'lucide-react';
+import { Camera, Keyboard, Mic, MessageSquare, User, Square, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useAudioRecorder } from '@/hooks/use-audio-recorder';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 
 interface HomePageProps {
-  onStartProblem: () => void;
+  onStartProblem: (initialValue?: string) => void;
   onStartUpload: () => void;
-  onStartVoice: () => void;
   onGoToAccount: () => void;
 }
 
-export function HomePage({ onStartProblem, onStartUpload, onStartVoice, onGoToAccount }: HomePageProps) {
+export function HomePage({ onStartProblem, onStartUpload, onGoToAccount }: HomePageProps) {
   const [activeTab, setActiveTab] = useState<'ask' | 'profile' | null>(null);
 
   const handleAskClick = () => {
@@ -26,45 +26,38 @@ export function HomePage({ onStartProblem, onStartUpload, onStartVoice, onGoToAc
     setActiveTab('profile');
     onGoToAccount();
   };
-
-  const heroImage = PlaceHolderImages.find(p => p.id === 'socratic-ai-hero-lightbulb');
-
+  const heroImage = PlaceHolderImages.find((img) => img.id === 'socratic-ai-hero-lightbulb');
   return (
     <div className="relative flex h-screen w-full flex-col overflow-hidden">
-      {/* Hero Image and Gradient Overlay */}
+      {/* Hero Image and Gradient */}
       <div className="absolute inset-0 z-0">
-        {heroImage && (
-          <Image
+        {heroImage && 
+            <Image
             src={heroImage.imageUrl}
             alt={heroImage.description}
+            data-ai-hint={heroImage.imageHint}
             fill
             className="object-cover"
             priority
-            data-ai-hint={heroImage.imageHint}
-          />
-        )}
-        {/* Lighting Gradient Overlay */}
-        <div 
-          className="absolute inset-0 z-10" 
-          style={{ 
-            background: 'linear-gradient(to bottom, transparent 0%, transparent 25%, rgba(0,0,0,0.8) 50%, black 75%, black 100%)' 
-          }} 
-        />
+            />
+        }
+        <div className="absolute inset-0 bg-black/40" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
       </div>
 
       {/* Main Content */}
-      <main className="relative z-20 flex flex-1 flex-col items-center p-4 text-center text-white">
-        <div className="mt-[45vh] flex flex-col items-center">
-          <h1 className="text-5xl font-bold uppercase tracking-tight">GUIDANCE. NOT ANSWERS.</h1>
-          <div className="h-12" /> {/* Spacer */}
-          <p className="text-xl font-medium">What can I help you understand today?</p>
+      <main className="relative z-10 flex flex-1 flex-col items-center justify-center p-4 text-center text-white">
+        <div className="flex flex-col items-center">
+          <h1 className="text-5xl font-bold uppercase">GUIDANCE. NOT ANSWERS.</h1>
+          <div className="h-10" /> {/* Spacer */}
+          <p className="text-xl">What can I help you understand today?</p>
         </div>
       </main>
 
       {/* Top Input Icons (conditionally rendered) */}
       {activeTab === 'ask' && (
-        <div className="absolute top-8 left-1/2 -translate-x-1/2 z-30 flex gap-8 rounded-full bg-black/30 p-4 backdrop-blur-sm">
-          <button onClick={onStartProblem} className="flex flex-col items-center gap-2 text-white">
+        <div className="absolute top-8 left-1/2 -translate-x-1/2 z-20 flex gap-8 rounded-full bg-black/30 p-4 backdrop-blur-sm">
+          <button onClick={() => onStartProblem()} className="flex flex-col items-center gap-2 text-white">
             <Keyboard size={32} />
             <span className="text-xs">Keyboard</span>
           </button>
@@ -72,16 +65,13 @@ export function HomePage({ onStartProblem, onStartUpload, onStartVoice, onGoToAc
             <Camera size={32} />
             <span className="text-xs">Camera</span>
           </button>
-          <button onClick={onStartVoice} className="flex flex-col items-center gap-2 text-white">
-            <Mic size={32} />
-            <span className="text-xs">Voice</span>
-          </button>
+          <VoiceButton onTranscriptReady={(text) => onStartProblem(text)} />
         </div>
       )}
 
       {/* Bottom Navigation */}
-      <footer className="fixed bottom-4 left-0 right-0 z-30 p-4">
-        <div className="mx-auto grid h-20 max-w-sm grid-cols-2 items-center gap-4 rounded-2xl bg-accent p-2 shadow-2xl">
+      <footer className="fixed bottom-4 left-1/2 -translate-x-1/2 z-20">
+        <div className="mx-auto grid h-20 w-80 max-w-sm grid-cols-2 items-center gap-4 rounded-2xl bg-accent p-2 shadow-2xl">
           <button
             onClick={handleAskClick}
             className={cn(
@@ -105,5 +95,41 @@ export function HomePage({ onStartProblem, onStartUpload, onStartVoice, onGoToAc
         </div>
       </footer>
     </div>
+  );
+}
+
+function VoiceButton({ onTranscriptReady }: { onTranscriptReady: (text: string) => void }) {
+  const { isRecording, isTranscribing, startRecording, stopRecording, transcript, error } = useAudioRecorder();
+
+  useEffect(() => {
+    if (transcript) {
+      onTranscriptReady(transcript);
+    }
+  }, [transcript, onTranscriptReady]);
+
+  if (isTranscribing) {
+    return (
+      <div className="flex flex-col items-center gap-2 text-white">
+        <Loader2 size={32} className="animate-spin" />
+        <span className="text-xs">Transcribing...</span>
+      </div>
+    );
+  }
+
+  if (isRecording) {
+    return (
+      <button onClick={stopRecording} className="flex flex-col items-center gap-2 text-red-500 animate-pulse">
+        <Square size={32} fill="currentColor" />
+        <span className="text-xs">Stop</span>
+      </button>
+    );
+  }
+
+  return (
+    <button onClick={startRecording} className="flex flex-col items-center gap-2 text-white">
+      <Mic size={32} />
+      <span className="text-xs">Voice</span>
+      {error && <span className="absolute -bottom-6 text-[10px] text-red-400 w-32">{error}</span>}
+    </button>
   );
 }

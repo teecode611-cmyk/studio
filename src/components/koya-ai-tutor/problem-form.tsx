@@ -26,13 +26,14 @@ interface ProblemFormProps {
   onSubmit: (data: ProblemSubmitData) => void;
   isLoading: boolean;
   onBack: () => void;
+  initialValue?: string;
 }
 
-export function ProblemForm({ onSubmit, isLoading, onBack }: ProblemFormProps) {
+export function ProblemForm({ onSubmit, isLoading, onBack, initialValue = '' }: ProblemFormProps) {
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      problem: '',
+      problem: initialValue,
     },
   });
 

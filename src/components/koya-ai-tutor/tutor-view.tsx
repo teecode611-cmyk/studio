@@ -19,8 +19,6 @@ import { SubscriptionPlan } from './subscription-plan';
 import { PaymentPage } from './payment-page';
 import { AccountPage } from './account-page';
 import { HomePage } from './home-page';
-import { AudioRecorderDialog } from './audio-recorder-dialog';
-import { transcribeAudio } from '@/ai/flows/transcribe-audio-flow';
 
 
 export type Message = {
@@ -32,6 +30,7 @@ type ViewState = 'home' | 'problem_form_text' | 'problem_form_upload' | 'tutor_s
 
 export function TutorView() {
   const [viewState, setViewState] = useState<ViewState>('home');
+  const [initialProblemValue, setInitialProblemValue] = useState('');
   
   const [messages, setMessages] = useState<Message[]>([]);
   const [problem, setProblem] = useState('');
@@ -46,7 +45,6 @@ export function TutorView() {
   const [isRecapOpen, setIsRecapOpen] = useState(false);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [authLoading, setAuthLoading] = useState(false);
-  const [isAudioRecorderOpen, setIsAudioRecorderOpen] = useState(false);
 
   const [pendingProblemData, setPendingProblemData] = useState<ProblemSubmitData | null>(null);
 
@@ -67,7 +65,8 @@ export function TutorView() {
     setAuthLoading(false);
   }, [toast]);
 
-  const handleStartProblemText = () => {
+  const handleStartProblemText = (initialValue?: string) => {
+    setInitialProblemValue(initialValue || '');
     setViewState('problem_form_text');
   }
 
@@ -75,12 +74,8 @@ export function TutorView() {
     setViewState('problem_form_upload');
   }
 
-  const handleStartProblemVoice = () => {
-    setIsAudioRecorderOpen(true);
-  }
-
   const handleBackToHome = () => {
-    resetSession();
+    setViewState('home');
   }
 
   const handleGoToAccount = () => {
@@ -168,7 +163,7 @@ export function TutorView() {
     // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 1000));
     try {
-      const firstMessage = { role: 'assistant', content: "Hello! How can I assist you today?" };
+      const firstMessage: Message = { role: 'assistant', content: "Hello! How can I assist you today?" };
       setMessages([
         firstMessage,
       ]);
@@ -231,23 +226,6 @@ export function TutorView() {
     }
   };
 
-  const handleAudioTranscription = async (audioDataUri: string) => {
-    setIsLoading(true);
-    try {
-        const { transcription } = await transcribeAudio({ audioDataUri });
-        if (transcription) {
-            handleTriggerAuth({ problem: transcription });
-        } else {
-            throw new Error('Transcription failed.');
-        }
-    } catch (error) {
-        handleError('Could not transcribe audio', error);
-    } finally {
-        setIsLoading(false);
-    }
-  };
-
-
   const resetSession = () => {
     setMessages([]);
     setProblem('');
@@ -269,9 +247,9 @@ export function TutorView() {
   const renderContent = () => {
     switch (viewState) {
       case 'home':
-        return <HomePage onStartProblem={handleStartProblemText} onStartUpload={handleStartProblemUpload} onStartVoice={handleStartProblemVoice} onGoToAccount={handleGoToAccount} />;
+        return <HomePage onStartProblem={handleStartProblemText} onStartUpload={handleStartProblemUpload} onGoToAccount={handleGoToAccount} />;
       case 'problem_form_text':
-        return <ProblemForm onBack={handleBackToHome} onSubmit={handleTriggerAuth} isLoading={isLoading} />;
+        return <ProblemForm onBack={handleBackToHome} onSubmit={handleTriggerAuth} isLoading={isLoading} initialValue={initialProblemValue} />;
       case 'problem_form_upload':
         return <ProblemUploadForm onBack={handleBackToHome} onSubmit={handleTriggerAuth} isLoading={isLoading} />;
       case 'subscription_plan':
@@ -322,7 +300,7 @@ export function TutorView() {
           </>
         )
       default:
-        return <HomePage onStartProblem={handleStartProblemText} onStartUpload={handleStartProblemUpload} onStartVoice={handleStartProblemVoice} onGoToAccount={handleGoToAccount} />;
+        return <HomePage onStartProblem={handleStartProblemText} onStartUpload={handleStartProblemUpload} onGoToAccount={handleGoToAccount} />;
     }
   }
 
@@ -335,12 +313,6 @@ export function TutorView() {
         onSubmit={handleAuthSubmit}
         isLoading={authLoading}
       />
-      <AudioRecorderDialog
-        isOpen={isAudioRecorderOpen}
-        onOpenChange={setIsAudioRecorderOpen}
-        onSubmit={handleAudioTranscription}
-        isSubmitting={isLoading}
-       />
     </div>
   );
 }
