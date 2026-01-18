@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -6,7 +5,7 @@ import Image from 'next/image';
 import { Camera, Keyboard, Mic, MessageSquare, User, Square, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAudioRecorder } from '@/hooks/use-audio-recorder';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
+import { KoyaCat } from './koya-cat';
 
 interface HomePageProps {
   onStartProblem: (initialValue?: string) => void;
@@ -26,32 +25,29 @@ export function HomePage({ onStartProblem, onStartUpload, onGoToAccount }: HomeP
     setActiveTab('profile');
     onGoToAccount();
   };
-  const heroImage = PlaceHolderImages.find((img) => img.id === 'socratic-ai-hero-lightbulb');
+
   return (
     <div className="relative flex h-screen w-full flex-col overflow-hidden">
-      {/* Hero Image and Gradient */}
-      <div className="absolute inset-0 z-0">
-        {heroImage && 
-            <Image
-            src={heroImage.imageUrl}
-            alt={heroImage.description}
-            data-ai-hint={heroImage.imageHint}
-            fill
-            className="object-cover"
-            priority
-            />
-        }
-        <div className="absolute inset-0 bg-black/40" />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
-      </div>
+      {/* Background Image */}
+      <Image
+        src="/background.png"
+        alt="Abstract background"
+        fill
+        className="object-cover"
+        priority
+      />
+      {/* Gradient Overlay */}
+      <div className="absolute inset-0 bg-black/40" />
 
       {/* Main Content */}
       <main className="relative z-10 flex flex-1 flex-col items-center justify-center p-4 text-center text-white">
-        <div className="flex flex-col items-center">
-          <h1 className="text-5xl font-bold uppercase">GUIDANCE. NOT ANSWERS.</h1>
-          <div className="h-10" /> {/* Spacer */}
-          <p className="text-xl">What can I help you understand today?</p>
-        </div>
+        <KoyaCat className="h-48 w-48 animate-bob" />
+        <h1 className="mt-8 text-5xl font-bold uppercase">
+          GUIDANCE. NOT ANSWERS.
+        </h1>
+        <p className="mt-4 text-xl">
+          What can I help you understand today?
+        </p>
       </main>
 
       {/* Top Input Icons (conditionally rendered) */}
@@ -71,12 +67,12 @@ export function HomePage({ onStartProblem, onStartUpload, onGoToAccount }: HomeP
 
       {/* Bottom Navigation */}
       <footer className="fixed bottom-4 left-1/2 -translate-x-1/2 z-20">
-        <div className="mx-auto grid h-20 w-80 max-w-sm grid-cols-2 items-center gap-4 rounded-2xl bg-accent p-2 shadow-2xl">
+        <div className="mx-auto grid h-20 w-80 max-w-sm grid-cols-2 items-center gap-4 rounded-2xl bg-primary p-2 shadow-2xl">
           <button
             onClick={handleAskClick}
             className={cn(
-              'flex h-full flex-col items-center justify-center gap-1 rounded-xl text-primary transition-colors',
-              activeTab === 'ask' ? 'bg-primary/10' : ''
+              'flex h-full flex-col items-center justify-center gap-1 rounded-xl text-accent transition-colors',
+              activeTab === 'ask' ? 'bg-black/20' : ''
             )}
           >
             <MessageSquare size={24} />
@@ -85,8 +81,8 @@ export function HomePage({ onStartProblem, onStartUpload, onGoToAccount }: HomeP
           <button
             onClick={handleProfileClick}
             className={cn(
-              'flex h-full flex-col items-center justify-center gap-1 rounded-xl text-primary transition-colors',
-              activeTab === 'profile' ? 'bg-primary/10' : ''
+              'flex h-full flex-col items-center justify-center gap-1 rounded-xl text-accent transition-colors',
+              activeTab === 'profile' ? 'bg-black/20' : ''
             )}
           >
             <User size={24} />
