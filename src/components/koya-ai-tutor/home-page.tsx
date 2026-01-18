@@ -36,16 +36,14 @@ export function HomePage({ onStartProblem, onStartUpload, onGoToAccount }: HomeP
         className="object-cover"
         priority
       />
-      {/* Gradient Overlay */}
-      <div className="absolute inset-0 bg-black/40" />
 
       {/* Main Content */}
       <main className="relative z-10 flex flex-1 flex-col items-center justify-center p-4 text-center text-white">
         <KoyaCat className="h-48 w-48 animate-bob" />
-        <h1 className="mt-8 text-5xl font-bold uppercase">
+        <h1 className="mt-8 text-5xl font-bold uppercase [text-shadow:2px_2px_4px_rgba(0,0,0,0.5)]">
           GUIDANCE. NOT ANSWERS.
         </h1>
-        <p className="mt-4 text-xl">
+        <p className="mt-4 text-xl [text-shadow:2px_2px_4px_rgba(0,0,0,0.5)]">
           What can I help you understand today?
         </p>
       </main>
