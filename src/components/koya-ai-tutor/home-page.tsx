@@ -44,10 +44,11 @@ export function HomePage({ onStartProblem, onStartUpload, onGoToAccount }: HomeP
         <h1 className="mt-8 text-5xl font-bold uppercase [text-shadow:2px_2px_8px_rgba(0,0,0,0.9)]">
           GUIDANCE. NOT ANSWERS.
         </h1>
-        <p className="mt-4 text-xl [text-shadow:2px_2px_8px_rgba(0,0,0,0.9)]">
-          What can I help you understand today?
-        </p>
       </main>
+
+      <p className="absolute bottom-28 left-1/2 -translate-x-1/2 z-10 w-full px-4 text-center text-xl text-white [text-shadow:2px_2px_8px_rgba(0,0,0,0.9)]">
+        What can I help you understand today?
+      </p>
 
       {/* Top Input Icons (conditionally rendered) */}
       {activeTab === 'ask' && (
