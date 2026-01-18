@@ -17,44 +17,44 @@ export default {
     },
     extend: {
       fontFamily: {
-        body: ['Literata', 'serif'],
-        headline: ['Literata', 'serif'],
+        body: ['Nunito', 'sans-serif'],
+        headline: ['Nunito', 'sans-serif'],
         code: ['monospace'],
       },
       colors: {
-        background: 'hsl(var(--background))',
-        foreground: 'hsl(var(--foreground))',
+        background: 'hsl(220 10% 15%)',
+        foreground: 'hsl(210 40% 98%)',
         card: {
-          DEFAULT: 'hsl(var(--card))',
-          foreground: 'hsl(var(--card-foreground))',
+          DEFAULT: 'hsl(220 10% 20%)',
+          foreground: 'hsl(210 40% 98%)',
         },
         popover: {
-          DEFAULT: 'hsl(var(--popover))',
-          foreground: 'hsl(var(--popover-foreground))',
+          DEFAULT: 'hsl(220 10% 20%)',
+          foreground: 'hsl(210 40% 98%)',
         },
         primary: {
-          DEFAULT: 'hsl(var(--primary))',
-          foreground: 'hsl(var(--primary-foreground))',
+          DEFAULT: 'hsl(215 80% 65%)',
+          foreground: 'hsl(210 40% 98%)',
         },
         secondary: {
-          DEFAULT: 'hsl(var(--secondary))',
-          foreground: 'hsl(var(--secondary-foreground))',
+          DEFAULT: 'hsl(220 15% 30%)',
+          foreground: 'hsl(210 40% 98%)',
         },
         muted: {
-          DEFAULT: 'hsl(var(--muted))',
-          foreground: 'hsl(var(--muted-foreground))',
+          DEFAULT: 'hsl(220 15% 30%)',
+          foreground: 'hsl(210 40% 80%)',
         },
         accent: {
-          DEFAULT: 'hsl(var(--accent))',
-          foreground: 'hsl(var(--accent-foreground))',
+          DEFAULT: 'hsl(25 95% 60%)',
+          foreground: 'hsl(210 40% 98%)',
         },
         destructive: {
-          DEFAULT: 'hsl(var(--destructive))',
-          foreground: 'hsl(var(--destructive-foreground))',
+          DEFAULT: 'hsl(0 63% 31%)',
+          foreground: 'hsl(0 0% 98%)',
         },
-        border: 'hsl(var(--border))',
-        input: 'hsl(var(--input))',
-        ring: 'hsl(var(--ring))',
+        border: 'hsl(220 15% 30%)',
+        input: 'hsl(220 15% 30%)',
+        ring: 'hsl(215 80% 65%)',
         chart: {
           '1': 'hsl(var(--chart-1))',
           '2': 'hsl(var(--chart-2))',
@@ -95,10 +95,38 @@ export default {
             height: '0',
           },
         },
+        bob: {
+          '0%, 100%': { transform: 'translateY(-4%)' },
+          '50%': { transform: 'translateY(0)' },
+        },
+        tada: {
+            '0%': { transform: 'scale(1)' },
+            '10%, 20%': { transform: 'scale(0.9) rotate(-3deg)' },
+            '30%, 50%, 70%, 90%': { transform: 'scale(1.1) rotate(3deg)' },
+            '40%, 60%, 80%': { transform: 'scale(1.1) rotate(-3deg)' },
+            '100%': { transform: 'scale(1) rotate(0)' }
+        },
+        blob: {
+          '0%': {
+            transform: 'translate(0px, 0px) scale(1)',
+          },
+          '33%': {
+            transform: 'translate(30px, -50px) scale(1.1)',
+          },
+          '66%': {
+            transform: 'translate(-20px, 20px) scale(0.9)',
+          },
+          '100%': {
+            transform: 'translate(0px, 0px) scale(1)',
+          },
+        },
       },
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
         'accordion-up': 'accordion-up 0.2s ease-out',
+        bob: 'bob 3s ease-in-out infinite',
+        tada: 'tada 1.5s ease-in-out',
+        blob: 'blob 7s infinite',
       },
     },
   },

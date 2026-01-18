@@ -1,11 +1,10 @@
-
 'use client';
 
 import { useState } from 'react';
 import Image from 'next/image';
 import { Camera, Keyboard, Mic, MessageSquare, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
+import { KoyaCat } from './koya-cat';
 
 interface HomePageProps {
   onStartProblem: () => void;
@@ -18,7 +17,6 @@ export function HomePage({ onStartProblem, onStartUpload, onStartVoice, onGoToAc
   const [activeTab, setActiveTab] = useState<'ask' | 'profile' | null>(null);
 
   const handleAskClick = () => {
-    // Toggle input methods visibility, don't navigate away
     setActiveTab(activeTab === 'ask' ? null : 'ask');
   };
 
@@ -27,52 +25,58 @@ export function HomePage({ onStartProblem, onStartUpload, onStartVoice, onGoToAc
     onGoToAccount();
   };
 
-  const heroImage = PlaceHolderImages.find(p => p.id === 'socratic-ai-hero-lightbulb');
-
   return (
-    <div className="relative flex h-screen w-full flex-col overflow-hidden">
-      {/* Hero Image and Gradient Overlay */}
-      <div className="absolute inset-0 z-0">
-        {heroImage && (
-          <Image
-            src={heroImage.imageUrl}
-            alt={heroImage.description}
-            fill
-            className="object-cover"
-            priority
-            data-ai-hint={heroImage.imageHint}
-          />
-        )}
-        {/* Lighting Gradient Overlay */}
-        <div 
-          className="absolute inset-0 z-10" 
-          style={{ 
-            background: 'linear-gradient(to bottom, transparent 0%, transparent 25%, rgba(0,0,0,0.8) 50%, black 75%, black 100%)' 
-          }} 
-        />
+    <div className="relative flex h-screen w-full flex-col overflow-hidden bg-accent">
+      {/* Decorative Bubbles */}
+      <div className="absolute inset-0 z-0 opacity-50">
+        <div className="absolute top-[10%] left-[5%] h-32 w-32 rounded-full bg-primary/30 animate-blob" />
+        <div className="absolute top-[20%] right-[10%] h-24 w-24 rounded-full bg-primary/20 animate-blob [animation-delay:2000ms]" />
+        <div className="absolute bottom-[15%] left-[20%] h-48 w-48 rounded-full bg-primary/40 animate-blob [animation-delay:4000ms]" />
+        <div className="absolute bottom-[5%] right-[25%] h-16 w-16 rounded-full bg-primary/30 animate-blob [animation-delay:1000ms]" />
+        <div className="absolute top-[50%] left-[40%] h-20 w-20 rounded-full bg-primary/20 animate-blob [animation-delay:3000ms]" />
       </div>
+
+      {/* Wavy Line SVG */}
+      <svg
+        className="absolute top-0 right-0 z-10 w-full h-full"
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 1440 800"
+        preserveAspectRatio="xMidYMid slice"
+      >
+        <path
+          d="M-200 800 C 400 400, 1000 1000, 1500 100"
+          stroke="hsl(var(--primary))"
+          strokeWidth="10"
+          fill="none"
+        />
+      </svg>
 
       {/* Main Content */}
       <main className="relative z-20 flex flex-1 flex-col items-center p-4 text-center text-white">
-        <div className="mt-[45vh] flex flex-col items-center">
-          <h1 className="text-5xl font-bold uppercase tracking-tight">GUIDANCE. NOT ANSWERS.</h1>
-          <div className="h-12" /> {/* Spacer */}
-          <p className="text-xl font-medium">What can I help you understand today?</p>
+        <div className="mt-[25vh] flex flex-col items-center">
+          <KoyaCat />
+          <div className="h-8" /> {/* Spacer */}
+          <h1 className="text-5xl font-bold uppercase tracking-tight text-primary-foreground drop-shadow-lg">
+            GUIDANCE. NOT ANSWERS.
+          </h1>
+          <p className="mt-4 text-xl font-medium text-primary-foreground/90 drop-shadow-md">
+            What can I help you understand today?
+          </p>
         </div>
       </main>
 
       {/* Top Input Icons (conditionally rendered) */}
       {activeTab === 'ask' && (
         <div className="absolute top-8 left-1/2 -translate-x-1/2 z-30 flex gap-8 rounded-full bg-black/30 p-4 backdrop-blur-sm">
-          <button onClick={onStartProblem} className="flex flex-col items-center gap-2 text-white">
+          <button onClick={onStartProblem} className="flex flex-col items-center gap-2 text-primary-foreground">
             <Keyboard size={32} />
             <span className="text-xs">Keyboard</span>
           </button>
-          <button onClick={onStartUpload} className="flex flex-col items-center gap-2 text-white">
+          <button onClick={onStartUpload} className="flex flex-col items-center gap-2 text-primary-foreground">
             <Camera size={32} />
             <span className="text-xs">Camera</span>
           </button>
-          <button onClick={onStartVoice} className="flex flex-col items-center gap-2 text-white">
+          <button onClick={onStartVoice} className="flex flex-col items-center gap-2 text-primary-foreground">
             <Mic size={32} />
             <span className="text-xs">Voice</span>
           </button>
@@ -81,12 +85,12 @@ export function HomePage({ onStartProblem, onStartUpload, onStartVoice, onGoToAc
 
       {/* Bottom Navigation */}
       <footer className="fixed bottom-4 left-0 right-0 z-30 p-4">
-        <div className="mx-auto grid h-20 max-w-sm grid-cols-2 items-center gap-4 rounded-2xl bg-accent p-2 shadow-2xl">
+        <div className="mx-auto grid h-20 max-w-sm grid-cols-2 items-center gap-4 rounded-2xl bg-primary p-2 shadow-2xl">
           <button
             onClick={handleAskClick}
             className={cn(
-              'flex h-full flex-col items-center justify-center gap-1 rounded-xl text-primary transition-colors',
-              activeTab === 'ask' ? 'bg-primary/10' : ''
+              'flex h-full flex-col items-center justify-center gap-1 rounded-xl text-accent transition-colors',
+              activeTab === 'ask' ? 'bg-black/20' : ''
             )}
           >
             <MessageSquare size={24} />
@@ -95,8 +99,8 @@ export function HomePage({ onStartProblem, onStartUpload, onStartVoice, onGoToAc
           <button
             onClick={handleProfileClick}
             className={cn(
-              'flex h-full flex-col items-center justify-center gap-1 rounded-xl text-primary transition-colors',
-              activeTab === 'profile' ? 'bg-primary/10' : ''
+              'flex h-full flex-col items-center justify-center gap-1 rounded-xl text-accent transition-colors',
+              activeTab === 'profile' ? 'bg-black/20' : ''
             )}
           >
             <User size={24} />
