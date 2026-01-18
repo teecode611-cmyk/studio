@@ -38,6 +38,9 @@ export function HomePage({ onStartProblem, onStartUpload, onGoToAccount }: HomeP
         priority
       />
 
+      {/* Gradient Overlay */}
+      <div className="absolute bottom-0 left-0 right-0 h-[15%] bg-gradient-to-t from-black to-transparent z-10" />
+
       {/* Main Content */}
       <main className="relative z-10 flex flex-1 flex-col items-center justify-center p-4 text-center text-white">
         <KoyaCat className="h-48 w-48 animate-bob" />
