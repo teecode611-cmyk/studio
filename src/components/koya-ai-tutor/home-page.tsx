@@ -41,10 +41,10 @@ export function HomePage({ onStartProblem, onStartUpload, onGoToAccount }: HomeP
       {/* Main Content */}
       <main className="relative z-10 flex flex-1 flex-col items-center justify-center p-4 text-center text-white">
         <KoyaCat className="h-48 w-48 animate-bob" />
-        <h1 className="mt-8 text-5xl font-bold uppercase [text-shadow:2px_2px_8px_rgba(0,0,0,0.7)]">
+        <h1 className="mt-8 text-5xl font-bold uppercase [text-shadow:2px_2px_8px_rgba(0,0,0,0.9)]">
           GUIDANCE. NOT ANSWERS.
         </h1>
-        <p className="mt-4 text-xl [text-shadow:2px_2px_8px_rgba(0,0,0,0.7)]">
+        <p className="mt-4 text-xl [text-shadow:2px_2px_8px_rgba(0,0,0,0.9)]">
           What can I help you understand today?
         </p>
       </main>
